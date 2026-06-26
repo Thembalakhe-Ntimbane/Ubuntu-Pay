@@ -7,12 +7,29 @@ import { authRouter } from './routes/auth';
 import { usersRouter } from './routes/users';
 import { requestsRouter } from './routes/requests';
 import { newsRouter } from './routes/news';
+import { notifyRouter } from './routes/notify';
 import { errorHandler } from './middleware/errorHandler';
 import { seedNews } from './lib/seedNews';
 
 const app = express();
 
-app.use(cors({ origin: config.frontendUrl, credentials: true }));
+const corsOrigins = new Set([
+  config.frontendUrl,
+  config.frontendUrl.replace('localhost', '127.0.0.1'),
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+]);
+
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || corsOrigins.has(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
+  credentials: true,
+}));
 // Default limit is 100 KB — too small for base64 avatar uploads (up to ~280 KB)
 app.use(express.json({ limit: '1mb' }));
 
@@ -24,6 +41,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/requests', requestsRouter);
 app.use('/api/news', newsRouter);
+app.use('/api/notify', notifyRouter);
 app.use('/api/remit', remitRouter);
 app.use('/api/callback', callbackRouter);
 

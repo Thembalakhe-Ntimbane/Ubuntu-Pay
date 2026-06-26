@@ -4,15 +4,19 @@ import { escapeHtml } from '../escape';
 import { presetRecipient } from './quoteView';
 import { toPointer } from '../pointer';
 
-export async function renderProfileView(container: HTMLElement): Promise<void> {
+export async function renderProfileView(
+  container: HTMLElement,
+  onSessionChange?: () => void
+): Promise<void> {
   container.innerHTML = `<div class="card"><p class="muted">Loading profile…</p></div>`;
 
   let user: User;
 
   try {
     user = await api.auth.me();
-  } catch {
-    container.innerHTML = `<div class="card"><p class="error-msg">Failed to load profile.</p></div>`;
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Failed to load profile.';
+    container.innerHTML = `<div class="card"><p class="error-msg">${escapeHtml(msg)}</p></div>`;
     return;
   }
 
@@ -122,6 +126,7 @@ export async function renderProfileView(container: HTMLElement): Promise<void> {
       const updated = await api.auth.update(data as Parameters<typeof api.auth.update>[0]);
       container.querySelector<HTMLElement>('#profile-name-display')!.textContent = updated.displayName;
       successDiv.hidden = false;
+      onSessionChange?.();
     } catch (err: unknown) {
       const msg          = err instanceof Error ? err.message : String(err);
       errDiv.textContent = msg;
@@ -135,7 +140,8 @@ export async function renderProfileView(container: HTMLElement): Promise<void> {
   // Logout
   container.querySelector('#logout-btn')!.addEventListener('click', () => {
     clearToken();
-    presetRecipient(null); // don't leak the selection into the next session
+    presetRecipient(null);
+    onSessionChange?.();
     window.location.hash = '#/';
   });
 }

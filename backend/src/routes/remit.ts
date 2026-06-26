@@ -4,7 +4,7 @@ import { eq, ne, and, desc } from 'drizzle-orm';
 import { isPendingGrant } from '@interledger/open-payments';
 import { db } from '../db';
 import { transactions, users } from '../db/schema';
-import { getClient, normaliseWalletAddress } from '../lib/openPayments';
+import { getClientForWallet, normaliseWalletAddress } from '../lib/openPayments';
 import { createQuoteTransaction } from '../lib/quoteFlow';
 import { config } from '../config';
 import { requireAuth } from '../middleware/requireAuth';
@@ -22,7 +22,7 @@ remitRouter.get('/wallet-info', requireAuth, async (req, res, next) => {
     const url = ((req.query.url as string) ?? '').trim();
     if (!url) return res.status(400).json({ error: 'Missing url parameter' });
 
-    const client = await getClient();
+    const client = await getClientForWallet(normaliseWalletAddress(url));
     const wallet = await client.walletAddress.get({ url: normaliseWalletAddress(url) });
 
     res.json({ assetCode: wallet.assetCode, assetScale: wallet.assetScale });
@@ -40,11 +40,15 @@ remitRouter.get('/wallet-info', requireAuth, async (req, res, next) => {
 // ─────────────────────────────────────────────────────────────────────────────
 remitRouter.post('/quote', requireAuth, async (req, res, next) => {
   try {
-    const { senderWalletAddress, receiverWalletAddress, amount, paymentType } = req.body as {
+    const { senderWalletAddress, receiverWalletAddress, amount, paymentType,
+            beneficiaryName, beneficiaryPhone, beneficiaryLanguage } = req.body as {
       senderWalletAddress:   string;
       receiverWalletAddress: string;
       amount:      string;
       paymentType: 'FIXED_SEND' | 'FIXED_RECEIVE';
+      beneficiaryName?:     string;
+      beneficiaryPhone?:    string;
+      beneficiaryLanguage?: string;
     };
 
     if (!senderWalletAddress || !receiverWalletAddress || !amount || !paymentType) {
@@ -60,6 +64,9 @@ remitRouter.post('/quote', requireAuth, async (req, res, next) => {
       amount,
       paymentType,
       userId: req.user!.id,
+      beneficiaryName,
+      beneficiaryPhone,
+      beneficiaryLanguage,
     });
 
     res.json(result);
@@ -88,8 +95,11 @@ remitRouter.post('/consent', requireAuth, async (req, res, next) => {
       return res.status(404).json({ error: 'Transaction not found' });
     }
     if (tx.status !== 'PENDING') return res.status(400).json({ error: `Transaction is ${tx.status}, expected PENDING` });
+    if (tx.quoteExpiresAt && tx.quoteExpiresAt < new Date()) {
+      return res.status(400).json({ error: 'Quote expired — start a new payment.' });
+    }
 
-    const client        = await getClient();
+    const client        = await getClientForWallet(tx.senderWalletAddress);
     const sendingWallet = await client.walletAddress.get({ url: tx.senderWalletAddress });
 
     // The nonce is required by the GNAP spec for the interact.finish hash. We store it
@@ -179,6 +189,7 @@ remitRouter.get('/status/:id', async (req, res, next) => {
         quoteExpiresAt:        transactions.quoteExpiresAt,
         errorMessage:          transactions.errorMessage,
         createdAt:             transactions.createdAt,
+        beneficiaryName:       transactions.beneficiaryName,
         recipientName:         users.displayName,
         recipientId:           users.id,
       })
@@ -187,7 +198,11 @@ remitRouter.get('/status/:id', async (req, res, next) => {
       .where(eq(transactions.id, req.params.id));
 
     if (!tx) return res.status(404).json({ error: 'Transaction not found' });
-    res.json(tx);
+
+    res.json({
+      ...tx,
+      recipientName: tx.beneficiaryName ?? tx.recipientName,
+    });
   } catch (err) {
     next(err);
   }

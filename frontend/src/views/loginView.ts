@@ -1,10 +1,13 @@
 import { api } from '../api';
 import { setToken } from '../auth';
+import { authBrandHtml } from '../ui/brand';
 
 export function renderLoginView(container: HTMLElement): void {
   container.innerHTML = `
-    <div class="card">
-      <h2>Log in</h2>
+    <div class="auth-card">
+      <div class="card">
+        ${authBrandHtml()}
+        <h2>Log in</h2>
       <form id="login-form" novalidate>
         <div class="field">
           <label for="login-email">Email</label>
@@ -18,6 +21,7 @@ export function renderLoginView(container: HTMLElement): void {
         <button type="submit" class="btn btn-primary" id="login-btn">Log in</button>
       </form>
       <p class="auth-switch">No account? <a href="#/signup">Sign up</a></p>
+      </div>
     </div>
   `;
 

@@ -52,6 +52,10 @@ export const transactions = sqliteTable('transactions', {
 
   userId:                text('user_id').references(() => users.id),
 
+  beneficiaryName:     text('beneficiary_name'),
+  beneficiaryPhone:    text('beneficiary_phone'),
+  beneficiaryLanguage: text('beneficiary_language'),
+
   errorMessage:          text('error_message'),
   createdAt:             integer('created_at', { mode: 'timestamp' }).notNull(),
   updatedAt:             integer('updated_at', { mode: 'timestamp' }).notNull(),

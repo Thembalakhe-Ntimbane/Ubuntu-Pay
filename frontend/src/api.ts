@@ -1,6 +1,13 @@
-import { getToken } from './auth';
+import { getToken, clearToken } from './auth';
 
-const BASE = (import.meta.env.VITE_BACKEND_URL as string | undefined) ?? 'http://localhost:3001';
+/** Empty string = same-origin (Vite dev proxy). Set VITE_BACKEND_URL for production builds. */
+const BASE = (import.meta.env.VITE_BACKEND_URL as string | undefined) ?? '';
+
+function networkErrorHint(): string {
+  return BASE
+    ? `Cannot reach the backend at ${BASE}. Is the server running?`
+    : 'Cannot reach the backend. Run `npm run dev` from the project root.';
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -9,9 +16,11 @@ export type PaymentType = 'FIXED_SEND' | 'FIXED_RECEIVE';
 export interface QuoteRequest {
   senderWalletAddress:   string;
   receiverWalletAddress: string;
-  /** Amount in the wallet's smallest unit (e.g. 100 = $1.00 for USD assetScale=2) */
   amount:      string;
   paymentType: PaymentType;
+  beneficiaryName?:     string;
+  beneficiaryPhone?:    string;
+  beneficiaryLanguage?: string;
 }
 
 export interface WalletInfo {
@@ -175,7 +184,14 @@ export interface PublicProfile {
   sharedTransactions: SharedTransaction[];
 }
 
-// ─── HTTP helpers ─────────────────────────────────────────────────────────────
+function handleHttpError(res: Response, err: { error?: string }, auth: boolean): never {
+  if (res.status === 401 && auth) {
+    clearToken();
+    window.location.hash = '#/login';
+    throw new Error('Session expired — please log in again.');
+  }
+  throw new Error(err.error ?? `HTTP ${res.status}`);
+}
 
 async function post<T>(path: string, body: unknown, auth = false): Promise<T> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -183,10 +199,15 @@ async function post<T>(path: string, body: unknown, auth = false): Promise<T> {
     const token = getToken();
     if (token) headers['Authorization'] = `Bearer ${token}`;
   }
-  const res = await fetch(`${BASE}${path}`, { method: 'POST', headers, body: JSON.stringify(body) });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}${path}`, { method: 'POST', headers, body: JSON.stringify(body) });
+  } catch {
+    throw new Error(networkErrorHint());
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText })) as { error?: string };
-    throw new Error(err.error ?? `HTTP ${res.status}`);
+    handleHttpError(res, err, auth);
   }
   return res.json() as Promise<T>;
 }
@@ -197,10 +218,15 @@ async function get<T>(path: string, auth = false): Promise<T> {
     const token = getToken();
     if (token) headers['Authorization'] = `Bearer ${token}`;
   }
-  const res = await fetch(`${BASE}${path}`, { headers });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}${path}`, { headers });
+  } catch {
+    throw new Error(networkErrorHint());
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText })) as { error?: string };
-    throw new Error(err.error ?? `HTTP ${res.status}`);
+    handleHttpError(res, err, auth);
   }
   return res.json() as Promise<T>;
 }
@@ -209,10 +235,15 @@ async function patch<T>(path: string, body: unknown): Promise<T> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   const token = getToken();
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  const res = await fetch(`${BASE}${path}`, { method: 'PATCH', headers, body: JSON.stringify(body) });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}${path}`, { method: 'PATCH', headers, body: JSON.stringify(body) });
+  } catch {
+    throw new Error(networkErrorHint());
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText })) as { error?: string };
-    throw new Error(err.error ?? `HTTP ${res.status}`);
+    handleHttpError(res, err, true);
   }
   return res.json() as Promise<T>;
 }

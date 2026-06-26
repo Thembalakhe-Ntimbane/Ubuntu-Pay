@@ -30,7 +30,7 @@ let _receiver: { assetCode: string; assetScale: number } | null = null;
 async function getReceiverInfo(): Promise<{ assetCode: string; assetScale: number }> {
   if (_receiver) return _receiver;
   const client = await getClient();
-  const wallet = await client.walletAddress.get({ url: normaliseWalletAddress(config.op.walletAddress) });
+  const wallet = await client.walletAddress.get({ url: normaliseWalletAddress(config.defaultWallet) });
   _receiver = { assetCode: wallet.assetCode, assetScale: wallet.assetScale };
   return _receiver;
 }
@@ -54,7 +54,7 @@ async function readReceivedAmount(
 ): Promise<{ value: string; assetCode: string; assetScale: number } | null> {
   try {
     const client = await getClient();
-    const wallet = await client.walletAddress.get({ url: normaliseWalletAddress(config.op.walletAddress) });
+    const wallet = await client.walletAddress.get({ url: normaliseWalletAddress(config.defaultWallet) });
     const grant = await client.grant.request(
       { url: wallet.authServer },
       { access_token: { access: [{ type: 'incoming-payment', actions: ['read', 'read-all'] }] } },
@@ -117,7 +117,7 @@ newsRouter.get('/posts', requireAuth, async (req, res, next) => {
         price:           r.price,
         priceAssetCode:  receiver.assetCode,
         priceAssetScale: receiver.assetScale,
-        receiverWallet:  config.op.walletAddress,
+        receiverWallet:  config.defaultWallet,
         streaming:       !!r.streaming,
         freeToRead:      !!r.freeToRead,
         streamLimit:     r.streamLimit,
@@ -196,7 +196,7 @@ newsRouter.get('/posts/:id', requireAuth, async (req, res, next) => {
       price:           post.price,
       priceAssetCode:  receiver.assetCode,
       priceAssetScale: receiver.assetScale,
-      receiverWallet:  config.op.walletAddress,
+      receiverWallet:  config.defaultWallet,
       streaming:       !!post.streaming,
       freeToRead:      !!post.freeToRead,
       streamLimit:     post.streamLimit,
@@ -258,7 +258,7 @@ newsRouter.post('/posts/:id/unlock', requireAuth, async (req, res, next) => {
 
     const result = await createQuoteTransaction({
       senderWalletAddress:   reader.walletAddress,
-      receiverWalletAddress: config.op.walletAddress,
+      receiverWalletAddress: config.defaultWallet,
       amount:                smallestUnit,
       paymentType:           'FIXED_RECEIVE', // the journalist receives exactly the listed price
       userId:                me,

@@ -54,7 +54,10 @@ authRouter.post('/signup', async (req, res, next) => {
     });
 
     const user = { id, email: email.toLowerCase(), displayName: displayName.trim() };
-    res.status(201).json({ token: signToken(user), user });
+    res.status(201).json({
+      token: signToken(user),
+      user:  { ...user, walletAddress: null, avatar: null },
+    });
   } catch (err) {
     next(err);
   }

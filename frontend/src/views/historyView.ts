@@ -45,8 +45,9 @@ export async function renderHistoryView(container: HTMLElement): Promise<void> {
   let history: HistoryEntry[];
   try {
     history = await api.history();
-  } catch {
-    container.innerHTML = `<div class="card"><p class="error-msg">Failed to load transaction history.</p></div>`;
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Failed to load transaction history.';
+    container.innerHTML = `<div class="card"><p class="error-msg">${escapeHtml(msg)}</p></div>`;
     return;
   }
 
@@ -54,7 +55,7 @@ export async function renderHistoryView(container: HTMLElement): Promise<void> {
     ? `<div class="card">
          <p class="muted history-empty">
            No transactions yet.
-           <a href="#/remit" class="history-empty-link">Send your first payment →</a>
+           <a href="#/remit" class="history-empty-link">Disburse your first grant →</a>
          </p>
        </div>`
     : `<div class="card history-card">

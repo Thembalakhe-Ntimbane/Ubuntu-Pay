@@ -7,9 +7,11 @@ A minimal, fully-functional monorepo that implements the complete Open Payments 
 ---
 
 
-Government  → https://ilp.interledger-test.dev/gov
-Ubuntu Pay  → https://ilp.interledger-test.dev/ubuntupay  
-Agent       → https://ilp.interledger-test.dev/joespaza
+Government  → https://ilp.interledger-test.dev/sassa-gov
+Ubuntu Pay  → https://ilp.interledger-test.dev/ubuntupay-escrow 
+Agent       → https://ilp.interledger-test.dev/spaza-shop
+
+
 
 ## Quick Start
 

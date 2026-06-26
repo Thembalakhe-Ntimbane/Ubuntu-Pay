@@ -1,13 +1,10 @@
-import { api, QuoteResponse, User, UserSearchResult } from '../api';
-import { PENDING_GRANTS, WALLETS } from '../data/beneficiaries';
+import { api, QuoteResponse, User } from '../api';
+import { PENDING_GRANTS, WALLETS, AGENT_SHOP_NAME } from '../data/beneficiaries';
 import { escapeHtml } from '../escape';
 import { applyGrantBadges, trackPendingGrant } from '../grantQueue';
 import { phaseBadgeHtml } from '../ui/brand';
 
-/** Kept for profile links — disburse flow uses beneficiary ID search instead. */
-export function presetRecipient(_user: UserSearchResult | null): void {}
-
-export function renderQuoteView(
+export function renderAgentView(
   container: HTMLElement,
   user: User,
   onQuote: (res: QuoteResponse) => void
@@ -17,35 +14,35 @@ export function renderQuoteView(
   container.innerHTML = `
     <div class="card send-card">
       <div class="send-header">
-        ${phaseBadgeHtml(1, 'Government → Escrow')}
-        <h2 class="send-title">Disburse Grant</h2>
-        <p class="send-subtitle">SASSA — Send approved grant to Ubuntu Pay escrow</p>
+        ${phaseBadgeHtml(2, 'Escrow → Agent')}
+        <h2 class="send-title">Agent Dashboard</h2>
+        <p class="send-subtitle">${AGENT_SHOP_NAME} — Verify beneficiary and release grant</p>
       </div>
 
       ${noWallet ? `
         <div class="warning-msg">
           You haven't set a wallet address yet.
-          <a href="#/profile">Go to Profile</a> and set your government wallet before disbursing.
+          <a href="#/profile">Go to Profile</a> and set your spaza agent wallet before releasing payments.
         </div>
       ` : ''}
 
       <div class="wallet-field-group">
         <div class="field">
-          <label>Government Wallet</label>
+          <label>Agent Wallet</label>
           <input
             type="text"
             class="input"
-            value="${escapeHtml(user.walletAddress ?? '')}"
+            value="${escapeHtml(user.walletAddress ?? WALLETS.agent)}"
             readonly
             disabled
           />
-          <span class="field-hint">Funds leave this wallet. Backend must use matching SASSA credentials.</span>
+          <span class="field-hint">Payments are released from escrow into this wallet.</span>
         </div>
 
         <div class="field">
           <label>Escrow Wallet</label>
           <input type="text" class="input" value="${WALLETS.escrow}" readonly disabled />
-          <span class="field-hint">Grant is held here until the beneficiary collects at a spaza agent.</span>
+          <span class="field-hint">Backend must use matching escrow credentials for release.</span>
         </div>
       </div>
 
@@ -75,16 +72,16 @@ export function renderQuoteView(
           </div>
           <span class="currency-tag" id="result-amount"></span>
         </div>
-        <div id="disburse-error" class="error-msg" hidden></div>
-        <button class="btn btn-africa-primary" id="disburse-btn">
-          Disburse to Escrow
+        <div id="release-error" class="error-msg" hidden></div>
+        <button class="btn btn-africa-primary" id="release-btn" ${noWallet ? 'disabled' : ''}>
+          Release Payment
         </button>
       </div>
 
       <hr class="divider" />
 
       <div class="field">
-        <label>Today's Queue</label>
+        <label>Pending Collections Today</label>
         <ul class="beneficiary-list" id="pending-list">
           ${PENDING_GRANTS.map(g => `
             <li class="beneficiary-item" id="grant-${g.id}" data-id="${g.id}">
@@ -102,16 +99,17 @@ export function renderQuoteView(
 
   applyGrantBadges(container);
 
-  const searchInput   = container.querySelector<HTMLInputElement>('#id-search')!;
-  const searchBtn     = container.querySelector<HTMLButtonElement>('#search-btn')!;
-  const searchError   = container.querySelector<HTMLDivElement>('#search-error')!;
-  const searchResult  = container.querySelector<HTMLDivElement>('#search-result')!;
-  const resultName    = container.querySelector<HTMLSpanElement>('#result-name')!;
-  const resultId      = container.querySelector<HTMLSpanElement>('#result-id')!;
-  const resultAmount  = container.querySelector<HTMLSpanElement>('#result-amount')!;
-  const disburseBtn   = container.querySelector<HTMLButtonElement>('#disburse-btn')!;
-  const disburseError = container.querySelector<HTMLDivElement>('#disburse-error')!;
+  const searchInput  = container.querySelector<HTMLInputElement>('#id-search')!;
+  const searchBtn    = container.querySelector<HTMLButtonElement>('#search-btn')!;
+  const searchError  = container.querySelector<HTMLDivElement>('#search-error')!;
+  const searchResult = container.querySelector<HTMLDivElement>('#search-result')!;
+  const resultName   = container.querySelector<HTMLSpanElement>('#result-name')!;
+  const resultId     = container.querySelector<HTMLSpanElement>('#result-id')!;
+  const resultAmount = container.querySelector<HTMLSpanElement>('#result-amount')!;
+  const releaseBtn   = container.querySelector<HTMLButtonElement>('#release-btn')!;
+  const releaseError = container.querySelector<HTMLDivElement>('#release-error')!;
 
+  const agentWallet = user.walletAddress ?? WALLETS.agent;
   let selectedGrant: typeof PENDING_GRANTS[0] | null = null;
 
   function doSearch(): void {
@@ -140,18 +138,18 @@ export function renderQuoteView(
     if (e.key === 'Enter') { e.preventDefault(); doSearch(); }
   });
 
-  disburseBtn.addEventListener('click', async () => {
-    if (!selectedGrant || !user.walletAddress) return;
+  releaseBtn.addEventListener('click', async () => {
+    if (!selectedGrant || noWallet) return;
 
-    disburseBtn.disabled    = true;
-    disburseBtn.textContent = 'Processing...';
-    disburseError.hidden    = true;
+    releaseBtn.disabled    = true;
+    releaseBtn.textContent = 'Processing...';
+    releaseError.hidden    = true;
 
     try {
       const grant = selectedGrant;
       const result = await api.quote({
-        senderWalletAddress:   user.walletAddress,
-        receiverWalletAddress: WALLETS.escrow,
+        senderWalletAddress:   WALLETS.escrow,
+        receiverWalletAddress: agentWallet,
         amount:                grant.amount.toString(),
         paymentType:           'FIXED_SEND',
         beneficiaryName:       grant.name,
@@ -159,7 +157,7 @@ export function renderQuoteView(
         beneficiaryLanguage:   grant.language,
       });
 
-      trackPendingGrant(result.transactionId, grant.id, 'IN ESCROW');
+      trackPendingGrant(result.transactionId, grant.id, 'COLLECTED');
 
       searchResult.hidden = true;
       searchInput.value   = '';
@@ -167,11 +165,11 @@ export function renderQuoteView(
 
       onQuote(result);
     } catch (err: unknown) {
-      disburseError.textContent = err instanceof Error ? err.message : String(err);
-      disburseError.hidden      = false;
+      releaseError.textContent = err instanceof Error ? err.message : String(err);
+      releaseError.hidden      = false;
     } finally {
-      disburseBtn.disabled    = false;
-      disburseBtn.textContent = 'Disburse to Escrow';
+      releaseBtn.disabled    = false;
+      releaseBtn.textContent = 'Release Payment';
     }
   });
 }

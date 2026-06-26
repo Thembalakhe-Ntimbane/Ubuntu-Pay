@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import type { WalletAddress } from '@interledger/open-payments';
 import { db } from '../db';
 import { transactions } from '../db/schema';
-import { getClient, normaliseWalletAddress, isFinalizedGrant } from './openPayments';
+import { getClientForWallet, normaliseWalletAddress, isFinalizedGrant } from './openPayments';
 
 // The first half of every payment: resolve wallets, create the incoming
 // payment on the receiver's wallet, quote it on the sender's wallet, and
@@ -18,6 +18,9 @@ export interface QuoteFlowInput {
   amount:      string;
   paymentType: 'FIXED_SEND' | 'FIXED_RECEIVE';
   userId:      string;
+  beneficiaryName?:     string;
+  beneficiaryPhone?:    string;
+  beneficiaryLanguage?: string;
   /**
    * Runs after both wallets are resolved but BEFORE any Open Payments resource
    * is created. Throw to abort — e.g. a payment request whose denominating
@@ -39,7 +42,7 @@ export interface QuoteFlowResult {
 export async function createQuoteTransaction(input: QuoteFlowInput): Promise<QuoteFlowResult> {
   const senderUrl   = normaliseWalletAddress(input.senderWalletAddress);
   const receiverUrl = normaliseWalletAddress(input.receiverWalletAddress);
-  const client      = await getClient();
+  const client      = await getClientForWallet(senderUrl);
   const fixedSend   = input.paymentType === 'FIXED_SEND';
 
   // Step 1: Resolve both wallet addresses in parallel
@@ -142,6 +145,9 @@ export async function createQuoteTransaction(input: QuoteFlowInput): Promise<Quo
     quoteUrl:              quote.id,
     quoteExpiresAt:        quote.expiresAt ? new Date(quote.expiresAt) : null,
     userId:                input.userId,
+    beneficiaryName:       input.beneficiaryName ?? null,
+    beneficiaryPhone:      input.beneficiaryPhone ?? null,
+    beneficiaryLanguage:   input.beneficiaryLanguage ?? null,
     createdAt:             now,
     updatedAt:             now,
   });
