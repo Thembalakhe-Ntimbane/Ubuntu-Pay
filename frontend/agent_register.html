@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ubuntu Pay | Agent Portal</title>
+  <link rel="stylesheet" href="agent_register.css" />
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="brand">
+      <h2>Ubuntu Pay</h2>
+      <p>Agent Portal</p>
+    </div>
+
+    <div class="nav-tabs">
+      <a href="home.html">Home</a>
+      <a href="#" class="active">Register</a>
+      <a href="#">Help</a>
+    </div>
+  </nav>
+
+  <main class="page">
+    <section class="left-content">
+      <p>Join Ubuntu Pay and serve your community.</p>
+
+      <div class="feature">
+        <div>🛡</div>
+        <article>
+          <h3>Trusted & Secure</h3>
+          <p>Bank-grade security for every transaction.</p>
+        </article>
+      </div>
+
+      <div class="feature">
+        <div>🛡</div>
+        <article>
+          <h3>Empower Communities</h3>
+          <p>Help beneficiaries access their grants with ease.</p>
+        </article>
+      </div>
+
+      <div class="feature">
+        <div>🛡</div>
+        <article>
+          <h3>Fast & Reliable</h3>
+          <p>Real-time transactions powered by Open Payments.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="form-card">
+      <div class="form-icon"></div>
+
+      <h2>Register as an <span>Agent</span></h2>
+      <p class="form-subtitle">Create your account to get started</p>
+
+      <form>
+        <div class="form-grid">
+          <label>
+            Full Name
+            <input type="text" placeholder="e.g. Sipho Dlamini" />
+          </label>
+
+          <label>
+            ID Number
+            <input type="text" placeholder="e.g. 900101 1234 086" />
+          </label>
+        </div>
+
+        <label>
+          Agent ID
+          <input type="text" placeholder="e.g. AGT001" />
+        </label>
+
+        <div class="form-grid">
+          <label>
+            Phone Number
+            <input type="tel" placeholder="e.g. 072 123 4567" />
+          </label>
+
+          <label>
+            Email Address
+            <input type="email" placeholder="e.g. sipho@example.com" />
+          </label>
+        </div>
+
+        <label>
+          Shop / Business Name
+          <input type="text" placeholder="e.g. Dlamini Spaza Shop" />
+        </label>
+
+        <label>
+          Shop Address
+          <input type="text" placeholder="e.g. 123 Main Street, Soweto" />
+        </label>
+
+        <div class="form-grid">
+          <label>
+            Create Password
+            <input type="password" placeholder="Enter password" />
+          </label>
+
+          <label>
+            Confirm Password
+            <input type="password" placeholder="Confirm password" />
+          </label>
+        </div>
+
+        <div class="terms">
+          <input type="checkbox" checked />
+          <p>I agree to the <span>Terms & Conditions</span> and <span>Privacy Policy</span></p>
+        </div>
+
+        <button type="button" onclick="window.location.href='agent_dashboard.html'">Register as Agent</button>
+        
+
+        <p class="signin">Already have an account? <a href="agent_signin.html">Sign in</a></p>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

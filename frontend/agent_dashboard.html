@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent Dashboard</title>
+  <link rel="stylesheet" href="agent_dashboard.css" />
+</head>
+
+<body>
+  <main class="dashboard">
+
+    <aside class="sidebar">
+      <div class="brand">
+        <h2>Agent Portal</h2>
+        <p>Ubuntu Pay</p>
+      </div>
+
+      <div class="agent-summary">
+        <small>Current Agent</small>
+        <h3></h3>
+        <p></p>
+
+        <hr />
+
+        <small>Available Float</small>
+        <h2></h2>
+      </div>
+
+      <nav class="menu">
+        <a href="#" class="active">Dashboard</a>
+        <a href="#">Search Beneficiary</a>
+        <a href="#">My Beneficiaries</a>
+      </nav>
+
+      <a href="agent_signin.html" class="signout">Sign Out</a>
+    </aside>
+
+    <section class="content">
+      <header>
+        <h1>Good morning</h1>
+        <p>Here is your daily summary.</p>
+      </header>
+
+      <section class="stats">
+        <div class="stat-card wide">
+          <p>Available Float Capacity</p>
+          <h2></h2>
+          <div class="progress">
+            <span></span>
+          </div>
+          <small>Float capacity overview.</small>
+        </div>
+
+        <div class="stat-card">
+          <p>Ready for Payout</p>
+          <h2></h2>
+        </div>
+
+        <div class="stat-card">
+          <p>Paid Today</p>
+          <h2></h2>
+        </div>
+      </section>
+
+      <a href="#" class="search-card">
+        <div>
+          <h2>Search & Release Payment</h2>
+          <p>Scan ID or search beneficiary name</p>
+        </div>
+        <span>→</span>
+      </a>
+
+      <section class="activity-card">
+        <div class="activity-header">
+          <h3>Recent Activity</h3>
+          <a href="#">View all</a>
+        </div>
+
+        <div class="empty-state">
+          <p>No recent activity to display.</p>
+        </div>
+      </section>
+    </section>
+
+  </main>
+</body>
+</html>

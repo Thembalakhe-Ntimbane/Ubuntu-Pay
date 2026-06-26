@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ubuntu Pay Login</title>
+  <link rel="stylesheet" href="home_style.css" />
+</head>
+
+<body>
+  <main class="login-page">
+
+    <section class="illustration-section" aria-label="Ubuntu Pay mobile preview"></section>
+
+    <section class="login-section">
+      <div class="security-icon">🛡</div>
+
+      <h1>Sign in to <span>Ubuntu Pay</span></h1>
+      <p class="subtitle">Choose how you want to sign in to your account</p>
+
+      <div class="login-options">
+
+        <div class="option-card">
+          <div class="card-image">
+            <img src="Images/government.png" alt="Government officials using digital devices" />
+          </div>
+
+          <div class="card-content">
+            <div class="option-icon"></div>
+
+            <h2>Government</h2>
+            <div class="line"></div>
+
+            <p>
+              For Treasury & SASSA officials. Manage beneficiaries,
+              disburse grants and view reports.
+            </p>
+
+            <button type="button" onclick="window.location.href='government_register.html'">
+              Sign in as Government
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="option-card">
+          <div class="card-image">
+            <img src="Images/agent.png" alt="Spaza shop agent using a payment device" />
+          </div>
+
+          <div class="card-content">
+            <div class="option-icon"></div>
+
+            <h2>Agent</h2>
+            <div class="line"></div>
+
+            <p>
+              For registered spaza shop agents. Verify beneficiaries
+              and release cash securely.
+            </p>
+
+            <button type="button" onclick="window.location.href='agent_register.html'">
+              Sign in as Agent
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="security-bar">
+        <div>🛡 Your security is our priority</div>
+        <div> End-to-end encrypted</div>
+        <div>✓ Open Payments compliant</div>
+      </div>
+    </section>
+
+  </main>
+</body>
+</html>

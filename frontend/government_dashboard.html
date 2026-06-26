@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Government Dashboard</title>
+  <link rel="stylesheet" href="government_dashboard.css" />
+</head>
+
+<body>
+  <main class="dashboard">
+
+    <aside class="sidebar">
+      <div class="brand">
+        <h2>Government Portal</h2>
+        <p>Secure. Transparent. Efficient.</p>
+      </div>
+
+      <nav class="menu">
+        <a href="#">Dashboard</a>
+        <a href="#">Beneficiaries</a>
+        <a href="#" class="active">Disbursements</a>
+        <a href="#">Reports</a>
+        <a href="#">Settings</a>
+      </nav>
+
+
+      <a href="government_signin.html" class="exit">Exit Portal</a>
+    </aside>
+
+    <section class="content">
+      <header class="topbar">
+        <div>
+          <h1>Disbursement</h1>
+          <p>Execute bulk payments via Open Payments protocol.</p>
+        </div>
+
+        <div class="profile-card">
+          <strong></strong>
+          <small></small>
+        </div>
+      </header>
+
+      <section class="main-grid">
+
+        <div class="left-column">
+          <div class="card batch-card">
+            <h2>Batch Summary</h2>
+            <p>Current pending queue</p>
+
+            <div class="summary-row">
+              <span>Pending Items</span>
+              <strong></strong>
+            </div>
+
+            <div class="summary-row">
+              <span>Total Value</span>
+              <strong></strong>
+            </div>
+
+            <div class="summary-row">
+              <span>Estimated Protocol Fees</span>
+              <strong></strong>
+            </div>
+
+            <button type="button">Execute Disbursement</button>
+          </div>
+
+          <div class="card log-card">
+            <h2>Execution Log</h2>
+            <p>Real-time updates and results</p>
+
+            <div class="empty-log">
+              <span>No execution logs yet.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card payments-card">
+          <div class="card-header">
+            <div>
+              <h2>Payment Items</h2>
+              <p>Live status of individual transactions</p>
+            </div>
+          </div>
+
+          <div class="empty-state">
+            <p>No payment items to display.</p>
+          </div>
+        </div>
+
+      </section>
+    </section>
+
+  </main>
+</body>
+</html>

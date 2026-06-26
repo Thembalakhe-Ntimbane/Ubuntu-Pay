@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ubuntu Pay | Government Sign In</title>
+  <link rel="stylesheet" href="government_signin.css" />
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="brand">
+      <h2>Ubuntu Pay</h2>
+      <p>Government Portal</p>
+    </div>
+
+    <div class="nav-tabs">
+      <a href="home.html">Home</a>
+      <a href="government_signin.html" class="active">Sign In</a>
+      <a href="government_register.html">Register</a>
+      <a href="#">Help</a>
+    </div>
+  </nav>
+
+  <main class="page">
+    <section class="left-content">
+      <h1>Government Official <span>Sign In</span></h1>
+      <p>
+        Access the Ubuntu Pay platform to manage beneficiaries,
+        approve grant processes, and monitor disbursements securely.
+      </p>
+
+      <div class="feature">
+        <div>🛡</div>
+        <article>
+          <h3>Secure Access</h3>
+          <p>Protected government-grade authentication.</p>
+        </article>
+      </div>
+
+      <div class="feature">
+        <div>🛡</div>
+        <article>
+          <h3>Grant Administration</h3>
+          <p>Manage beneficiaries and grant disbursements.</p>
+        </article>
+      </div>
+
+      <div class="feature">
+       <div>🛡</div>
+        <article>
+          <h3>Reports & Insights</h3>
+          <p>View real-time payment activity and reports.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="form-card">
+      <div class="form-icon">🏛</div>
+
+      <h2>Welcome Back</h2>
+      <p class="form-subtitle">Sign in to your government account</p>
+
+      <form>
+        <label>
+          Official Email
+          <input type="email" placeholder="e.g. nomsa.mkhize@treasury.gov.za" />
+        </label>
+
+        <label>
+          Password
+          <input type="password" placeholder="Enter your password" />
+        </label>
+
+        <label>
+          Confirm Password
+          <input type="password" placeholder="Confirm your password" />
+        </label>
+
+        <div class="form-row">
+          <label class="remember">
+            <input type="checkbox" />
+            Remember me
+          </label>
+
+          <a href="#">Forgot Password?</a>
+        </div>
+
+      <button type="button" onclick="window.location.href='government_dashboard.html'">Sign In</button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>
