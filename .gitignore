@@ -1,0 +1,23 @@
+node_modules/
+dist/
+
+# SQLite database files
+*.db
+*.db-shm
+*.db-wal
+
+# Environment variables — never commit secrets
+.env
+backend/.env
+frontend/.env
+
+# Private keys — never commit
+*.key
+*.pem
+
+# Drizzle generated migrations (optional — only needed for migrate, not push)
+backend/drizzle/
+
+# OS
+.DS_Store
+Thumbs.db

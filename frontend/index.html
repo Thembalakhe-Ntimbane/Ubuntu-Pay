@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a0f14" />
+    <meta name="description" content="Ubuntu Pay — SASSA grant disbursement via Open Payments escrow and spaza agents." />
+    <title>Ubuntu Pay</title>
+    <link rel="icon" type="image/svg+xml" href="/ubuntu-logo.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap"
+    />
+  </head>
+  <body>
+    <div id="ferrofluid-bg" class="ferrofluid-bg"></div>
+    <header class="site-header">
+      <div class="site-header-inner">
+        <div id="site-logo"></div>
+        <nav id="main-nav" class="main-nav" hidden>
+          <a href="#/"        class="nav-link" data-route="">Home</a>
+          <a href="#/remit"   class="nav-link" data-route="remit">Disburse</a>
+          <a href="#/agent"   class="nav-link" data-route="agent">Agent</a>
+          <a href="#/history" class="nav-link" data-route="history">History</a>
+          <a href="#/profile" class="nav-link" data-route="profile">Profile</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="app">
+      <div id="view"></div>
+    </main>
+
+    <footer class="site-footer">
+      <span class="footer-lockup">
+        <img src="/ubuntu-logo.svg" width="18" height="18" alt="" class="footer-logo" />
+        <strong>Ubuntu Pay</strong>
+      </span>
+      <span class="footer-dot">·</span>
+      Open Payments
+      <span class="footer-dot">·</span>
+      Interledger
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
