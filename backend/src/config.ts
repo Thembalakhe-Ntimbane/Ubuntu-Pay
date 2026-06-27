@@ -22,7 +22,7 @@ function walletFromEnv(prefix: string, defaultAddress: string): WalletCredential
 
 function loadWallets(): WalletCredentials[] {
   return [
-    walletFromEnv('SASSA',  DEMO_WALLET_URLS.sassa),
+    walletFromEnv('GOV',  DEMO_WALLET_URLS.sassa),
     walletFromEnv('ESCROW', DEMO_WALLET_URLS.escrow),
     walletFromEnv('SPAZA',  DEMO_WALLET_URLS.spaza),
   ];
