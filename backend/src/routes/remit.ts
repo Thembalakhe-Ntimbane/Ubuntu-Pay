@@ -7,6 +7,7 @@ import { transactions, users } from '../db/schema';
 import { getClientForWallet, normaliseWalletAddress } from '../lib/openPayments';
 import { createQuoteTransaction } from '../lib/quoteFlow';
 import { config } from '../config';
+import { notificationForCompletedPayment } from '../lib/notify';
 import { requireAuth } from '../middleware/requireAuth';
 
 export const remitRouter = Router();
@@ -190,6 +191,8 @@ remitRouter.get('/status/:id', async (req, res, next) => {
         errorMessage:          transactions.errorMessage,
         createdAt:             transactions.createdAt,
         beneficiaryName:       transactions.beneficiaryName,
+        beneficiaryPhone:      transactions.beneficiaryPhone,
+        beneficiaryLanguage:   transactions.beneficiaryLanguage,
         recipientName:         users.displayName,
         recipientId:           users.id,
       })
@@ -199,9 +202,29 @@ remitRouter.get('/status/:id', async (req, res, next) => {
 
     if (!tx) return res.status(404).json({ error: 'Transaction not found' });
 
+    let smsPreview: { message: string; phone: string; productionNote: string } | undefined;
+    if (tx.status === 'COMPLETED' && tx.beneficiaryName && tx.beneficiaryPhone) {
+      const sms = notificationForCompletedPayment({
+        senderWallet:        tx.senderWalletAddress,
+        receiverWallet:      tx.receiverWalletAddress,
+        receiveAmount:       tx.receiveAmount ?? tx.debitAmount ?? '0',
+        beneficiaryName:     tx.beneficiaryName,
+        beneficiaryPhone:    tx.beneficiaryPhone,
+        beneficiaryLanguage: tx.beneficiaryLanguage,
+      });
+      if (sms) {
+        smsPreview = {
+          message:        sms.message,
+          phone:          sms.to,
+          productionNote: "In production this fires via Africa's Talking API.",
+        };
+      }
+    }
+
     res.json({
       ...tx,
       recipientName: tx.beneficiaryName ?? tx.recipientName,
+      ...(smsPreview ? { smsPreview } : {}),
     });
   } catch (err) {
     next(err);

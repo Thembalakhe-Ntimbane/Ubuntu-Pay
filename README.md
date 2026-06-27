@@ -1,44 +1,38 @@
-# OpenRemit
+# Ubuntu Pay
 
-> A bare-bones, Open Payments remittance template for hackers.
+> SASSA grant disbursement demo — Open Payments escrow, spaza agents, and SMS notifications.
 
-A minimal, fully-functional monorepo that implements the complete Open Payments Send → Receive flow using the [`@interledger/open-payments`](https://github.com/interledger/open-payments) SDK. Built as a hackathon launchpad.
+Ubuntu Pay shows how government social grants can reach unbanked beneficiaries through Interledger Open Payments: funds move from a **government wallet** into **escrow**, beneficiaries get an **SMS** in their language, and a local **spaza agent** releases the grant on ID verification.
 
 ---
 
+## Three wallets
 
-Government  → https://ilp.interledger-test.dev/sassa-gov
-Ubuntu Pay  → https://ilp.interledger-test.dev/ubuntupay-escrow 
-Agent       → https://ilp.interledger-test.dev/spaza-shop
+| Role | Wallet address |
+|------|----------------|
+| Government (SASSA) | `https://ilp.interledger-test.dev/sassa-gov` |
+| Ubuntu Pay escrow | `https://ilp.interledger-test.dev/ubuntupay-escrow` |
+| Spaza agent | `https://ilp.interledger-test.dev/spaza-shop` |
 
+Each wallet needs its own developer key in `backend/.env` (`SASSA_*`, `ESCROW_*`, `SPAZA_*`).
 
+---
 
-## Quick Start
+## Quick start
 
 ### Prerequisites
 
 - **Node.js 20+**
-- An account at [wallet.interledger-test.dev](https://wallet.interledger-test.dev) with a key pair generated and uploaded
+- Three test wallets at [wallet.interledger-test.dev](https://wallet.interledger-test.dev) with key pairs generated and uploaded
 
 ### 1. Clone & install
 
 ```bash
-git clone https://github.com/marclevin/OpenRemit.git openremit && cd openremit
+git clone https://github.com/marclevin/OpenRemit.git ubuntupay && cd ubuntupay
 npm install
 ```
 
-### 2. Get your wallet credentials
-
-You can obtain test wallet credentials from the [Interledger Test Wallet](https://wallet.interledger-test.dev):
-
-1. Create an account in the **Interledger Test Wallet**
-   (<https://wallet.interledger-test.dev>) and create one or more **wallet addresses**. For a
-   peer-to-peer payment you need a sending and a receiving wallet address; the client wallet
-   address can be the sending one.
-2. Generate a **key pair** for your account (**Settings → Developer Keys → Add Key**). You'll get a **Key ID** and a **private key
-   file** (e.g. `private.key`). Keep the private key on the machine that runs the backend.
-
-### 3. Configure
+### 2. Configure three wallet credentials
 
 ```bash
 cp backend/.env.example backend/.env
@@ -46,25 +40,47 @@ cp backend/.env.example backend/.env
 
 Edit `backend/.env`:
 
-| Variable            | Description                                                    |
-|---------------------|----------------------------------------------------------------|
-| `OP_WALLET_ADDRESS` | Your wallet URL, e.g. `https://ilp.interledger-test.dev/alice` |
-| `OP_KEY_ID`         | The UUID of the key you uploaded                               |
-| `OP_PRIVATE_KEY_PATH` | Path to the `.key` file — e.g. `./private.key`               |
+| Variable | Description |
+|----------|-------------|
+| `SASSA_WALLET` / `SASSA_KEY_ID` / `SASSA_KEY_PATH` | Government disbursement wallet |
+| `ESCROW_WALLET` / `ESCROW_KEY_ID` / `ESCROW_KEY_PATH` | Escrow holding wallet |
+| `SPAZA_WALLET` / `SPAZA_KEY_ID` / `SPAZA_KEY_PATH` | Spaza agent collection wallet |
+| `AGENT_SHOP_NAME` | Shop name in SMS copy (default: Joe's Spaza) |
 
-### 4. Initialise the database
+Place `SASSA.key`, `ESCROW.key`, and `SPAZA.key` in `backend/` (paths must match `*_KEY_PATH`).
+
+### 3. Initialise the database
 
 ```bash
 npm run db:push
 ```
 
-### 5. Start
+### 4. Start
 
 ```bash
 npm run dev      # backend :3001 + frontend :5173
 ```
 
 Open [http://localhost:5173](http://localhost:5173).
+
+---
+
+## Demo flow
+
+1. **Sign up / log in** as a government user.
+2. **Profile** → set wallet to `$ilp.interledger-test.dev/sassa-gov`.
+3. **Disburse** → search beneficiary ID `4501015009087` (Mama Dlamini) → **Disburse to Escrow**.
+4. **Authorise** at the Interledger test wallet (as sassa-gov).
+5. **Status page** shows transfer complete + **SMS preview** (*"In production this fires via Africa's Talking API."*).
+6. **Agent dashboard** → log in with profile wallet `$ilp.interledger-test.dev/spaza-shop` → verify ID and release grant from escrow.
+
+### SMS (Africa's Talking)
+
+When a disbursement completes, the backend calls `notificationForCompletedPayment()` and sends via [Africa's Talking](https://africastalking.com/) when `AT_*` env vars are set. Without credentials, SMS is logged to the console and shown on the status page for demo purposes. Messages support isiZulu, isiXhosa, Sesotho, and English.
+
+### Financial identity pitch
+
+For many beneficiaries, the escrow incoming payment and wallet address represent their **first financial identity** — once onboarded, they can receive money from anyone on any Open Payments network. Ubuntu Pay doesn't just distribute grants; it brings the unbanked into the digital financial system.
 
 ---
 
@@ -90,18 +106,19 @@ Open [http://localhost:5173](http://localhost:5173).
   4. Auth server       ──► GET /api/callback
      redirects back        ├─ grant.continue()      ──► Exchange interact_ref
                            ├─ outgoingPayment.create()► Execute payment
+                           ├─ notifyBeneficiary()   ──► SMS via Africa's Talking
                            └─ redirect to frontend
 
   5. Status view polls     GET /api/remit/status/:id
-     until COMPLETED
+     until COMPLETED       (includes smsPreview on disburse)
 ```
 
 **Summary:**
 
 - `POST /api/remit/quote` — resolve wallets, create incoming payment + quote
 - `POST /api/remit/consent` — request interactive outgoing grant, get interact URL
-- `GET /api/callback` — continue grant, create outgoing payment
-- `GET /api/remit/status/:id` — poll current transaction state
+- `GET /api/callback` — continue grant, create outgoing payment, fire SMS
+- `GET /api/remit/status/:id` — poll current transaction state (+ SMS preview when complete)
 - `GET /api/remit/history` — the current user's sent payments
 - `GET /api/remit/wallet-info?url=…` — resolve a wallet's currency before quoting
 
@@ -119,7 +136,7 @@ Open [http://localhost:5173](http://localhost:5173).
 - `POST /api/requests/:id/fulfill` — payer accepts: runs the shared quote flow (`backend/src/lib/quoteFlow.ts`) and returns the same shape as `/api/remit/quote`, so the frontend continues into the normal consent → callback pipeline; `/api/callback` marks the ask COMPLETED when the payment succeeds
 - `POST /api/requests/:id/decline` (payer), `POST /api/requests/:id/cancel` (requester)
 
-**News ("The Ledger")** — a [Web Monetization](https://webmonetization.org/specification/) demo (all require a `Bearer` token). Seeded articles by a fictional journalist; the reader is the payer, `OP_WALLET_ADDRESS` is the monetization receiver.
+**News ("The Ledger")** — a [Web Monetization](https://webmonetization.org/specification/) demo (all require a `Bearer` token). Seeded articles by a fictional journalist; the reader is the payer, the escrow wallet is the monetization receiver.
 
 - `GET /api/news/posts` — list articles with a per-reader `unlocked` flag (never returns the paywalled body)
 - `GET /api/news/posts/:id` — one article; body returned when unlocked or the post is `freeToRead`, plus a `MonetizationEvent`-style receipt
@@ -133,7 +150,7 @@ Open [http://localhost:5173](http://localhost:5173).
 ## Architecture at a Glance
 
 ```
-OpenRemit/
+Ubuntu-Pay/
 ├── package.json               ← workspace root, `npm run dev` starts everything
 │
 ├── backend/
@@ -141,17 +158,18 @@ OpenRemit/
 |   │   └── p2p-open-payments-walkthrough.ts ← SDK usage example without web server or DB code (good reference for OP changes)
 │   ├── src/
 │   │   ├── index.ts           ← Express entry point — mount routes here
-│   │   ├── config.ts          ← All env vars in one place
+│   │   ├── config.ts          ← All env vars in one place (SASSA/ESCROW/SPAZA wallets)
 │   │   ├── lib/
-│   │   │   ├── openPayments.ts← SDK client singleton (start here for OP changes)
+│   │   │   ├── openPayments.ts← Multi-wallet SDK client (start here for OP changes)
 │   │   │   ├── quoteFlow.ts   ← shared resolve → incoming payment → quote flow
+│   │   │   ├── notify.ts      ← Africa's Talking SMS + voice notifications
 │   │   │   └── seedNews.ts    ← seeds the demo News articles on first boot
 │   │   ├── db/
 │   │   │   ├── schema.ts      ← Database tables (users, transactions, payment_requests, posts, post_unlocks)
 │   │   │   └── index.ts       ← Drizzle + libsql (SQLite file) instance
 │   │   ├── routes/
 │   │   │   ├── remit.ts       ← wallet-info / quote / consent / status / history
-│   │   │   ├── callback.ts    ← GNAP redirect handler
+│   │   │   ├── callback.ts    ← GNAP redirect handler + SMS trigger
 │   │   │   ├── auth.ts        ← signup / login / profile (JWT)
 │   │   │   ├── users.ts       ← user search + public profiles
 │   │   │   ├── requests.ts    ← payment requests ("asks")
@@ -169,14 +187,17 @@ OpenRemit/
         ├── auth.ts            ← JWT storage helpers (localStorage)
         ├── escape.ts          ← escapeHtml() — use for anything user-entered
         ├── styles.css         ← Edit :root vars to rebrand
+        ├── ui/
+        │   └── ferrofluid.ts  ← WebGL background (ogl)
         └── views/
             ├── homeView.ts          ← Landing page (public + logged-in)
             ├── loginView.ts / signupView.ts
             ├── profileView.ts       ← Edit profile, wallet address, avatar
             ├── publicProfileView.ts ← Other users + shared transactions
-            ├── quoteView.ts         ← Step 1: pick recipient + amount
+            ├── quoteView.ts         ← Gov disburse: pick beneficiary + amount
+            ├── agentView.ts         ← Spaza agent: verify ID + release grant
             ├── consentView.ts       ← Step 2: confirm quote, redirect to wallet
-            ├── statusView.ts        ← Step 3: poll & display result
+            ├── statusView.ts        ← Step 3: poll & display result + SMS preview
             ├── historyView.ts       ← Past payments table
             ├── receiveView.ts       ← Request money (create asks)
             ├── newsView.ts          ← News article grid
@@ -189,9 +210,9 @@ OpenRemit/
 
 > Paste this section into Claude, ChatGPT, or Cursor when extending the template.
 
-**Project:** OpenRemit — TypeScript monorepo. Backend: Node.js + Express + Drizzle ORM + SQLite. Frontend: Vite + vanilla TypeScript (no framework). Core SDK: `@interledger/open-payments`.
+**Project:** Ubuntu Pay — TypeScript monorepo. Backend: Node.js + Express + Drizzle ORM + SQLite. Frontend: Vite + vanilla TypeScript (no framework). Core SDK: `@interledger/open-payments`.
 
-**SDK Client:** Singleton in `backend/src/lib/openPayments.ts`. `getClient()` returns an authenticated client. `privateKey` is a file path — the SDK reads the `.pem` itself. All payment/quote `create` calls use the wallet's `resourceServer` URL (from `walletAddress.get()`), not the wallet address URL.
+**SDK Client:** Multi-wallet setup in `backend/src/lib/openPayments.ts`. `getClientForWallet(url)` returns an authenticated client for SASSA, escrow, or spaza wallets based on `backend/.env`. `privateKey` is a file path — the SDK reads the `.pem` itself. All payment/quote `create` calls use the wallet's `resourceServer` URL (from `walletAddress.get()`), not the wallet address URL.
 
 **Full OpenPayments SDK P2P Example:** A full example is avaliable in an examples folder in this repository: `backend/examples/p2p-open-payments-walkthrough.ts`. It uses the same SDK patterns as the template but without any of the web server or database code, so it's a good reference for how to use the SDK in isolation.
 
@@ -222,7 +243,7 @@ await client.outgoingPayment.create({ url: sendingWallet.resourceServer, accessT
 
 **Auth:** `POST /api/auth/signup` / `login` return `{ token, user }`. The frontend stores the JWT in localStorage (`frontend/src/auth.ts`) and sends it as a `Bearer` header (`frontend/src/api.ts`). Protected routes use the `requireAuth` middleware, which sets `req.user`.
 
-**Frontend routing:** `main.ts` is a hash router — `#/login`, `#/remit`, `#/history`, `#/profile`, `#/user/:id` — that renders one view at a time into `#view`. Each view module exports a single `render…View(container, …)` function that sets `container.innerHTML` and wires events. User-entered values must be passed through `escapeHtml()` (`frontend/src/escape.ts`) before interpolation. After the GNAP redirect the backend sends the browser to `FRONTEND_URL?status=...&id=<uuid>` — `main.ts` detects the `id` param and goes directly to the status view.
+**Frontend routing:** `main.ts` is a hash router — `#/login`, `#/remit`, `#/agent`, `#/history`, `#/profile`, `#/user/:id` — that renders one view at a time into `#view`. Each view module exports a single `render…View(container, …)` function that sets `container.innerHTML` and wires events. User-entered values must be passed through `escapeHtml()` (`frontend/src/escape.ts`) before interpolation. After the GNAP redirect the backend sends the browser to `FRONTEND_URL?status=...&id=<uuid>` — `main.ts` detects the `id` param and goes directly to the status view.
 
 **To add a new API route:** add a handler in `backend/src/routes/`, wire it in `backend/src/index.ts`, and add a typed wrapper in `frontend/src/api.ts`.
 **To add a DB field:** edit `backend/src/db/schema.ts`, run `npm run db:push`.
@@ -267,7 +288,7 @@ Replace `frontend/src/views/*.ts` with React components. The `api.ts` module (ty
 
 1. Set `BACKEND_URL` to your public backend URL so the GNAP callback reaches the internet
 2. Set `FRONTEND_URL` to your public frontend URL
-3. Point `OP_PRIVATE_KEY_PATH` to the key file on your server (or use a secrets manager)
+3. Point `SASSA_KEY_PATH`, `ESCROW_KEY_PATH`, and `SPAZA_KEY_PATH` to key files on your server (or use a secrets manager)
 
 ---
 
@@ -285,7 +306,8 @@ npx tsx examples/p2p-open-payments-walkthrough.ts
 
 | Problem | Fix |
 |---------|-----|
-| `Missing required environment variable: OP_WALLET_ADDRESS` | Copy `backend/.env.example` → `backend/.env` and fill in credentials |
+| `Forbidden` or wallet access denied on Disburse | Set profile wallet to `$ilp.interledger-test.dev/sassa-gov`; verify all `SASSA_*`, `ESCROW_*`, `SPAZA_*` keys in `backend/.env` match your test wallets |
+| `No Open Payments credentials for wallet …` | Add the matching `*_KEY_ID` and `*_KEY_PATH` for that wallet handle in `backend/.env` |
 | `Grant continuation did not return an access token` | Consent was denied, expired, or already used — try again from the quote step |
 | `Expected non-interactive incoming-payment grant` | The receiver's wallet requires interactive consent for incoming payments (rare on testnet) |
 | Frontend can't reach backend | Check `VITE_BACKEND_URL` in `frontend/.env` (default: `http://localhost:3001`) and that CORS allows your frontend origin |

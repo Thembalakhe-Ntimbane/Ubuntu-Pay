@@ -53,6 +53,7 @@ export async function renderProfileView(
           <input id="p-wallet" name="walletAddress" type="text" class="input"
             placeholder="$ilp.interledger-test.dev/your-handle"
             value="${escapeHtml(user.walletAddress ? toPointer(user.walletAddress) : '')}" />
+          <span class="field-hint">Disburse as gov: <code>$ilp.interledger-test.dev/sassa-gov</code> · Agent: <code>$ilp.interledger-test.dev/spaza-shop</code></span>
         </div>
         <div class="field">
           <label for="p-password">New password <span class="muted">(leave blank to keep current)</span></label>

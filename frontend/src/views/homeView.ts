@@ -64,6 +64,13 @@ function renderDashboardHome(container: HTMLElement): void {
             <div class="home-pillar-text">Real-time transfers over the Interledger network.</div>
           </div>
         </div>
+        <div class="home-pillar">
+          <span class="home-pillar-icon">${icons.globe}</span>
+          <div>
+            <div class="home-pillar-label">First financial identity</div>
+            <div class="home-pillar-text">For many beneficiaries, a wallet address is their first financial identity — onboarded into Open Payments without a bank account.</div>
+          </div>
+        </div>
       </div>
 
       <div class="home-proverb-band">
@@ -87,6 +94,10 @@ function renderPublicHome(container: HTMLElement): void {
         <a href="#/login"  class="btn btn-secondary">Log in</a>
       </div>
       ${flowStepsHtml()}
+      <div class="home-identity-band">
+        <p class="home-identity-title">First financial identity</p>
+        <p class="home-identity-body">Ubuntu Pay doesn't just distribute grants — a wallet address onboards the unbanked into Open Payments for the first time.</p>
+      </div>
       <div class="hero-features">
         <div class="feature">
           <span class="feature-icon">${icons.shield}</span>

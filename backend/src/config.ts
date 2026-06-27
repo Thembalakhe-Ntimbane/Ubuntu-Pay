@@ -52,7 +52,7 @@ export const config = {
     enabled:  Boolean(process.env.AT_API_KEY && process.env.AT_USERNAME),
   },
 
-  agentShopName: process.env.AGENT_SHOP_NAME ?? "Jomo's Spaza",
+  agentShopName: process.env.AGENT_SHOP_NAME ?? "Joe's Spaza",
 
   /** App operator wallet (SASSA gov — used by legacy news routes). */
   get defaultWallet(): string {

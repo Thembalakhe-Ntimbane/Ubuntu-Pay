@@ -4,7 +4,7 @@ export const WALLETS = {
   agent:  'https://ilp.interledger-test.dev/spaza-shop',
 } as const;
 
-export const AGENT_SHOP_NAME = "Jomo's Spaza";
+export const AGENT_SHOP_NAME = "Joe's Spaza";
 
 export type BeneficiaryLanguage = 'zu' | 'xh' | 'st' | 'en';
 

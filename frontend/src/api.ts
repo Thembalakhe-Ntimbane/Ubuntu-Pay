@@ -59,6 +59,11 @@ export interface Transaction {
   createdAt:             string;
   recipientName:         string | null;
   recipientId?:          string | null;
+  smsPreview?: {
+    message:        string;
+    phone:          string;
+    productionNote: string;
+  };
 }
 
 /** One row of /api/remit/history — a payment the user sent or received. */
