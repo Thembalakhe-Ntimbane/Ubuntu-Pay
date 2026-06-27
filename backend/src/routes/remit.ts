@@ -42,7 +42,8 @@ remitRouter.get('/wallet-info', requireAuth, async (req, res, next) => {
 remitRouter.post('/quote', requireAuth, async (req, res, next) => {
   try {
     const { senderWalletAddress, receiverWalletAddress, amount, paymentType,
-            beneficiaryName, beneficiaryPhone, beneficiaryLanguage } = req.body as {
+            beneficiaryName, beneficiaryPhone, beneficiaryLanguage,
+            receiveAssetCode, receiveAssetScale } = req.body as {
       senderWalletAddress:   string;
       receiverWalletAddress: string;
       amount:      string;
@@ -50,6 +51,8 @@ remitRouter.post('/quote', requireAuth, async (req, res, next) => {
       beneficiaryName?:     string;
       beneficiaryPhone?:    string;
       beneficiaryLanguage?: string;
+      receiveAssetCode?:  string;
+      receiveAssetScale?: number;
     };
 
     if (!senderWalletAddress || !receiverWalletAddress || !amount || !paymentType) {
@@ -68,6 +71,8 @@ remitRouter.post('/quote', requireAuth, async (req, res, next) => {
       beneficiaryName,
       beneficiaryPhone,
       beneficiaryLanguage,
+      receiveAssetCode,
+      receiveAssetScale,
     });
 
     res.json(result);

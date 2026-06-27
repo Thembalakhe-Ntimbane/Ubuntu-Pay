@@ -27,7 +27,7 @@ siteLogo.innerHTML = headerLogoHtml();
 const ferrofluidBg = document.getElementById('ferrofluid-bg');
 if (ferrofluidBg) {
   mountFerrofluid(ferrofluidBg, {
-    colors: ['#22c55e', '#0a1410', '#4ade80'],
+    colors: ['#beef00', '#0a0f14', '#657a00'],
     speed: 0.35,
     opacity: 0.55,
     mouseInteraction: true,

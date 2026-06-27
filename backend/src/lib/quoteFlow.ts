@@ -21,6 +21,9 @@ export interface QuoteFlowInput {
   beneficiaryName?:     string;
   beneficiaryPhone?:    string;
   beneficiaryLanguage?: string;
+  /** FIXED_RECEIVE only — override receiver wallet asset (e.g. ZAR grant amount). */
+  receiveAssetCode?:  string;
+  receiveAssetScale?: number;
   /**
    * Runs after both wallets are resolved but BEFORE any Open Payments resource
    * is created. Throw to abort — e.g. a payment request whose denominating
@@ -69,6 +72,9 @@ export async function createQuoteTransaction(input: QuoteFlowInput): Promise<Quo
   // Step 3: Create incoming payment on receiver's wallet
   //   FIXED_RECEIVE → set incomingAmount so the receiver gets exactly `amount`
   //   FIXED_SEND    → open-ended (no incomingAmount); quote drives the final receive amount
+  const receiveAssetCode  = input.receiveAssetCode  ?? receivingWallet.assetCode;
+  const receiveAssetScale = input.receiveAssetScale ?? receivingWallet.assetScale;
+
   const incomingPayment = fixedSend
     ? await client.incomingPayment.create(
         { url: receivingWallet.resourceServer, accessToken: incomingPaymentGrant.access_token.value },
@@ -80,8 +86,8 @@ export async function createQuoteTransaction(input: QuoteFlowInput): Promise<Quo
           walletAddress:  receivingWallet.id,
           incomingAmount: {
             value:      input.amount,
-            assetCode:  receivingWallet.assetCode,
-            assetScale: receivingWallet.assetScale,
+            assetCode:  receiveAssetCode,
+            assetScale: receiveAssetScale,
           },
         }
       );
