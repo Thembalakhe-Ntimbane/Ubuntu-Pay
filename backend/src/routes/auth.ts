@@ -1,17 +1,17 @@
-import { Router } from 'express';
-import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
+import { eq } from 'drizzle-orm';
+import { Router } from 'express';
 import jwt from 'jsonwebtoken';
+import crypto from 'node:crypto';
+import { config } from '../config';
 import { db } from '../db';
 import { users } from '../db/schema';
-import { eq } from 'drizzle-orm';
-import { config } from '../config';
-import { requireAuth } from '../middleware/requireAuth';
 import { normaliseWalletAddress } from '../lib/openPayments';
+import { requireAuth } from '../middleware/requireAuth';
 
 export const authRouter = Router();
 
-const MAX_AVATAR_BYTES = 200 * 1024; // 200 KB base64 limit
+const MAX_AVATAR_BYTES = 200 * 1024; // 200 KB is the base64 language
 
 function signToken(user: { id: string; email: string; displayName: string }): string {
   return jwt.sign(

@@ -1,15 +1,15 @@
-import { config } from './config';
-import express from 'express';
 import cors from 'cors';
-import { remitRouter } from './routes/remit';
-import { callbackRouter } from './routes/callback';
+import express from 'express';
+import { config } from './config';
+import { seedNews } from './lib/seedNews';
+import { errorHandler } from './middleware/errorHandler';
 import { authRouter } from './routes/auth';
-import { usersRouter } from './routes/users';
-import { requestsRouter } from './routes/requests';
+import { callbackRouter } from './routes/callback';
 import { newsRouter } from './routes/news';
 import { notifyRouter } from './routes/notify';
-import { errorHandler } from './middleware/errorHandler';
-import { seedNews } from './lib/seedNews';
+import { remitRouter } from './routes/remit';
+import { requestsRouter } from './routes/requests';
+import { usersRouter } from './routes/users';
 
 const app = express();
 
@@ -29,8 +29,9 @@ app.use(cors({
     }
   },
   credentials: true,
+
 }));
-// Default limit is 100 KB — too small for base64 avatar uploads (up to ~280 KB)
+// Default limit is 100 KB  
 app.use(express.json({ limit: '1mb' }));
 
 app.get('/api/health', (_req, res) => {
