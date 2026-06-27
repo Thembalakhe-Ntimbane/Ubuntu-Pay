@@ -21,6 +21,8 @@ export interface QuoteRequest {
   beneficiaryName?:     string;
   beneficiaryPhone?:    string;
   beneficiaryLanguage?: string;
+  receiveAssetCode?:  string;
+  receiveAssetScale?: number;
 }
 
 export interface WalletInfo {
