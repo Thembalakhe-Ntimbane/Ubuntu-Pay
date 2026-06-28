@@ -206,10 +206,6 @@ Ubuntu-Pay/
 
 ---
 
-## Context for AI Assistants
-
-> Paste this section into Claude, ChatGPT, or Cursor when extending the template.
-
 **Project:** Ubuntu Pay — TypeScript monorepo. Backend: Node.js + Express + Drizzle ORM + SQLite. Frontend: Vite + vanilla TypeScript (no framework). Core SDK: `@interledger/open-payments`.
 
 **SDK Client:** Multi-wallet setup in `backend/src/lib/openPayments.ts`. `getClientForWallet(url)` returns an authenticated client for SASSA, escrow, or spaza wallets based on `backend/.env`. `privateKey` is a file path — the SDK reads the `.pem` itself. All payment/quote `create` calls use the wallet's `resourceServer` URL (from `walletAddress.get()`), not the wallet address URL.
@@ -260,14 +256,6 @@ await client.outgoingPayment.create({ url: sendingWallet.resourceServer, accessT
 | `npm run db:push` | Push schema changes to SQLite (no migration files needed) |
 
 ---
-
-## Extending the Template
-
-### Add a contacts / favourites list
-
-1. Add a `contacts` table to `backend/src/db/schema.ts` (`userId`, `contactUserId`)
-2. Add `GET/POST /api/users/contacts` routes guarded by `requireAuth`
-3. Run `npm run db:push`, then surface the list in `quoteView.ts` next to search
 
 ### Add recurring payments
 
