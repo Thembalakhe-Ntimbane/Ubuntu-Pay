@@ -1,8 +1,8 @@
 import type { ErrorRequestHandler } from 'express';
 
 const WALLET_HINT =
-  'Check SASSA_*, ESCROW_*, and SPAZA_* keys in backend/.env. ' +
-  'For disburse, your profile wallet must be $ilp.interledger-test.dev/sassa-gov.';
+  'Check SPAZA_WALLET, SPAZA_KEY_ID, and SPAZA_KEY_PATH in backend/.env. ' +
+  'Demo uses $ilp.interledger-test.dev/spaza-shop for all roles — set that in your profile too.';
 
 function friendlyMessage(status: number, message: string): string {
   const lower = message.toLowerCase();
@@ -13,6 +13,14 @@ function friendlyMessage(status: number, message: string): string {
     lower.includes('no open payments credentials')
   ) {
     return `Wallet access denied — ${WALLET_HINT} Original: ${message}`;
+  }
+
+  if (lower.includes('could not load private key') || lower.includes('begin public key')) {
+    return (
+      `Invalid wallet private key — backend/SPAZA.key must be your PRIVATE key file ` +
+      `(starts with "-----BEGIN PRIVATE KEY-----"), not the public key. ` +
+      `Download it from https://wallet.interledger-test.dev/spaza-shop → Keys. Original: ${message}`
+    );
   }
 
   return message;

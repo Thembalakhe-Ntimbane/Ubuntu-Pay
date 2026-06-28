@@ -6,7 +6,8 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "generate-key": "tsx scripts/generate-key.ts"
   },
   "dependencies": {
     "@interledger/open-payments": "^7.4.0",

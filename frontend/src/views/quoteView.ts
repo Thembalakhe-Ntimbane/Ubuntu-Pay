@@ -29,7 +29,7 @@ export function renderQuoteView(
         </div>
       ` : `
         <div class="field-hint gov-wallet-hint">
-          Government users: set your profile wallet to <code>$ilp.interledger-test.dev/joespaza</code> so disburse uses the correct SASSA credentials.
+          Demo mode: set your profile wallet to <code>$ilp.interledger-test.dev/spaza-shop</code> (same wallet for all roles).
         </div>
       `}
 

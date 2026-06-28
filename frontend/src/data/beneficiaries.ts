@@ -1,7 +1,10 @@
+/** Demo: one wallet for gov, escrow, and agent — matches backend SPAZA credentials. */
+export const DEMO_WALLET = 'https://ilp.interledger-test.dev/spaza-shop' as const;
+
 export const WALLETS = {
-  gov:    'https://ilp.interledger-test.dev/sassa-gov',
-  escrow: 'https://ilp.interledger-test.dev/ubuntupay-escrow',
-  agent:  'https://ilp.interledger-test.dev/spaza-shop',
+  gov:    DEMO_WALLET,
+  escrow: DEMO_WALLET,
+  agent:  DEMO_WALLET,
 } as const;
 
 export const AGENT_SHOP_NAME = "Joe's Spaza";
@@ -29,7 +32,7 @@ export const PENDING_GRANTS: BeneficiaryGrant[] = [
     idNumber: '4501015009087',
     phone: TEST_PHONE,
     language: 'zu',
-    amount: 2090,
+    amount: 240000,
     assetCode: 'ZAR',
     assetScale: 2,
     status: 'PENDING',
@@ -40,7 +43,7 @@ export const PENDING_GRANTS: BeneficiaryGrant[] = [
     idNumber: '3807204800083',
     phone: TEST_PHONE,
     language: 'xh',
-    amount: 2090,
+    amount: 240000,
     assetCode: 'ZAR',
     assetScale: 2,
     status: 'PENDING',
@@ -51,7 +54,7 @@ export const PENDING_GRANTS: BeneficiaryGrant[] = [
     idNumber: '4203154900081',
     phone: TEST_PHONE,
     language: 'st',
-    amount: 2090,
+    amount: 240000,
     assetCode: 'ZAR',
     assetScale: 2,
     status: 'PENDING',

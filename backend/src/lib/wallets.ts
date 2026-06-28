@@ -6,11 +6,14 @@ export interface WalletCredentials {
   privateKeyPath: string;
 }
 
-/** Ubuntu Pay demo wallets — credentials loaded from env in config.ts */
+/** Single demo wallet — all roles share spaza-shop so one key pair is enough. */
+export const DEMO_WALLET = '$ilp.interledger-test.dev/spaza-shop' as const;
+
+/** Role-specific aliases (same address) — used by notify + frontend parity. */
 export const DEMO_WALLET_URLS = {
-  sassa:  'https://ilp.interledger-test.dev/sassa-gov',
-  escrow: 'https://ilp.interledger-test.dev/ubuntupay-escrow',
-  spaza:  'https://ilp.interledger-test.dev/spaza-shop',
+  sassa:  DEMO_WALLET,
+  escrow: DEMO_WALLET,
+  spaza:  DEMO_WALLET,
 } as const;
 
 export function walletKey(url: string): string {
@@ -26,7 +29,8 @@ export function findWalletCredentials(
   if (!found) {
     throw new Error(
       `No Open Payments credentials for wallet ${url}. ` +
-      `Configure SASSA_*, ESCROW_*, and SPAZA_* in backend/.env`
+      `Set SPAZA_WALLET / SPAZA_KEY_ID / SPAZA_KEY_PATH in backend/.env ` +
+      `(demo uses $ilp.interledger-test.dev/spaza-shop for all roles).`
     );
   }
   return found;

@@ -1,11 +1,9 @@
 import cors from 'cors';
 import express from 'express';
 import { config } from './config';
-import { seedNews } from './lib/seedNews';
 import { errorHandler } from './middleware/errorHandler';
 import { authRouter } from './routes/auth';
 import { callbackRouter } from './routes/callback';
-import { newsRouter } from './routes/news';
 import { notifyRouter } from './routes/notify';
 import { remitRouter } from './routes/remit';
 import { requestsRouter } from './routes/requests';
@@ -41,15 +39,13 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/auth', authRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/requests', requestsRouter);
-app.use('/api/news', newsRouter);
 app.use('/api/notify', notifyRouter);
 app.use('/api/remit', remitRouter);
 app.use('/api/callback', callbackRouter);
 
 app.use(errorHandler);
 
-// Seed the demo News posts on first boot (idempotent — no-op if any exist).
-seedNews().catch((err) => console.error('[seed] News seed failed:', err));
+ 
 
 app.listen(config.port, () => {
   console.log(`\n  OpenRemit backend → http://localhost:${config.port}\n`);

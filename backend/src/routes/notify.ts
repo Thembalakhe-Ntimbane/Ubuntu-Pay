@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { config } from '../config';
-import { requireAuth } from '../middleware/requireAuth';
 import {
   grantArrivedMessage,
   initiateVoiceCall,
@@ -8,10 +7,11 @@ import {
   sendBeneficiarySms,
   sendBeneficiaryVoice,
 } from '../lib/notify';
+import { requireAuth } from '../middleware/requireAuth';
 
 export const notifyRouter = Router();
 
-/** Smoke-test SMS + voice to the configured test phone (+27660826868 by default). */
+/** Smoke-test SMS + voice to the configured test phone */
 notifyRouter.post('/test', requireAuth, async (_req, res, next) => {
   try {
     const phone   = config.africasTalking.testPhone;

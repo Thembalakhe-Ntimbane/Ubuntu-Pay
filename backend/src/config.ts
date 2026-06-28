@@ -2,6 +2,7 @@ import 'dotenv/config';
 import path from 'node:path';
 import type { WalletCredentials } from './lib/wallets';
 import { DEMO_WALLET_URLS } from './lib/wallets';
+import { assertPrivateKeyFile, resolvePrivateKeyPath } from './lib/privateKey';
 
 function required(name: string): string {
   const val = process.env[name];
@@ -9,22 +10,21 @@ function required(name: string): string {
   return val;
 }
 
-function walletFromEnv(prefix: string, defaultAddress: string): WalletCredentials {
-  return {
-    walletAddress: process.env[`${prefix}_WALLET`] ?? defaultAddress,
-    keyId:         required(`${prefix}_KEY_ID`),
-    privateKeyPath: path.resolve(
-      process.cwd(),
-      process.env[`${prefix}_KEY_PATH`] ?? `./${prefix}.key`
-    ),
-  };
-}
-
+/** Demo mode: one wallet + SPAZA key for gov, escrow, and agent roles. */
 function loadWallets(): WalletCredentials[] {
+  const keyPathEnv = process.env.SPAZA_KEY_PATH ?? './SPAZA.key';
+  assertPrivateKeyFile(keyPathEnv);
+
+  const base: WalletCredentials = {
+    walletAddress: process.env.SPAZA_WALLET ?? DEMO_WALLET_URLS.spaza,
+    keyId:         required('SPAZA_KEY_ID'),
+    privateKeyPath: resolvePrivateKeyPath(keyPathEnv),
+  };
+
   return [
-    walletFromEnv('GOV',  DEMO_WALLET_URLS.sassa),
-    walletFromEnv('ESCROW', DEMO_WALLET_URLS.escrow),
-    walletFromEnv('SPAZA',  DEMO_WALLET_URLS.spaza),
+    { ...base, walletAddress: process.env.GOV_WALLET    ?? base.walletAddress },
+    { ...base, walletAddress: process.env.ESCROW_WALLET ?? base.walletAddress },
+    { ...base, walletAddress: process.env.SPAZA_WALLET  ?? base.walletAddress },
   ];
 }
 
