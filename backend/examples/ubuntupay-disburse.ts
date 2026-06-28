@@ -1,7 +1,7 @@
 import {
-    createAuthenticatedClient,
-    isFinalizedGrantWithAccessToken,
-    isPendingGrant,
+  createAuthenticatedClient,
+  isFinalizedGrantWithAccessToken,
+  isPendingGrant,
 } from '@interledger/open-payments';
 import { createInterface } from 'node:readline/promises';
 
