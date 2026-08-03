@@ -1,17 +1,13 @@
 {
-  "name": "openremit",
+  "name": "quikpay-web",
   "version": "1.0.0",
-  "private": true,
-  "workspaces": [
-    "backend",
-    "frontend"
-  ],
+  "type": "module",
   "scripts": {
-    "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
-    "build": "npm run build --workspaces --if-present",
-    "db:push": "npm run db:push --workspace=backend"
+    "dev": "node server.js"
   },
-  "devDependencies": {
-    "concurrently": "^9.0.0"
+  "dependencies": {
+    "@interledger/open-payments": "^7.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
   }
 }

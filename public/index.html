@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>QuikPay — SASSA Grant Distribution</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;font-family:'Inter',sans-serif;color:#c9d1d9;min-height:100vh}
+
+/* Nav */
+nav{background:#161b22;border-bottom:1px solid #30363d;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100}
+.nav-logo{font-size:18px;font-weight:700;color:#58a6ff}.nav-logo span{color:#3fb950}
+.nav-tabs{display:flex;gap:4px}
+.nav-tab{padding:6px 16px;border-radius:6px;border:none;background:transparent;color:#6e7681;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s}
+.nav-tab:hover{background:#21262d;color:#c9d1d9}
+.nav-tab.active{background:#21262d;color:#e6edf3}
+.nav-status{display:flex;align-items:center;gap:6px;font-size:12px}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#f0883e}
+.status-dot.ready{background:#3fb950;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* Layout */
+.page{display:none;padding:24px;max-width:1100px;margin:0 auto}
+.page.active{display:block}
+
+/* Stats row */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.stat-card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:16px}
+.stat-label{font-size:11px;color:#6e7681;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+.stat-value{font-size:28px;font-weight:700;color:#e6edf3}
+.stat-sub{font-size:11px;color:#6e7681;margin-top:2px}
+.stat-card.green .stat-value{color:#3fb950}
+.stat-card.blue .stat-value{color:#58a6ff}
+.stat-card.orange .stat-value{color:#ffa657}
+
+/* Cards */
+.card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:20px;margin-bottom:16px}
+.card-title{font-size:14px;font-weight:600;color:#e6edf3;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.card-title .badge{font-size:10px;background:#21262d;color:#6e7681;padding:2px 8px;border-radius:10px;font-weight:400}
+
+/* Setup section */
+.setup-steps{display:flex;flex-direction:column;gap:12px}
+.setup-step{display:flex;align-items:center;gap:14px;padding:14px;background:#0d1117;border:1px solid #21262d;border-radius:8px}
+.step-num{width:32px;height:32px;border-radius:50%;background:#21262d;color:#6e7681;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-num.active{background:#58a6ff;color:#0d1117}
+.step-num.done{background:#3fb950;color:#0d1117}
+.step-info{flex:1}
+.step-title{font-size:13px;font-weight:600;color:#e6edf3}
+.step-desc{font-size:11px;color:#6e7681;margin-top:2px}
+.step-action{margin-left:auto}
+
+/* Buttons */
+.btn{padding:8px 18px;border-radius:7px;border:none;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-primary{background:#238636;color:#fff}.btn-primary:hover{background:#2ea043}
+.btn-primary:disabled{background:#21262d;color:#6e7681;cursor:not-allowed}
+.btn-blue{background:#1f3a5f;color:#58a6ff;border:1px solid #58a6ff44}.btn-blue:hover{background:#264a7a}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-danger{background:#3d1f1f;color:#f0883e;border:1px solid #f0883e44}
+
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 12px;font-size:11px;color:#6e7681;text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid #21262d;font-weight:500}
+td{padding:10px 12px;border-bottom:1px solid #21262d22}
+tr:last-child td{border:none}
+tr:hover td{background:#21262d22}
+.badge-claimed{background:#0f2a14;color:#3fb950;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
+.badge-pending{background:#271a00;color:#ffa657;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
+
+/* Spaza portal */
+.portal-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.portal-grid{grid-template-columns:1fr}}
+
+.id-input-wrap{position:relative;margin-bottom:14px}
+.id-input{width:100%;background:#0d1117;border:2px solid #30363d;border-radius:8px;padding:14px 16px;color:#e6edf3;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;letter-spacing:2px;outline:none;transition:border-color .2s;text-align:center}
+.id-input:focus{border-color:#58a6ff}
+.id-label{font-size:11px;color:#6e7681;text-align:center;margin-bottom:8px;text-transform:uppercase;letter-spacing:.6px}
+
+.shops-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.shop-btn{padding:12px;background:#0d1117;border:2px solid #30363d;border-radius:8px;cursor:pointer;transition:all .2s;text-align:left}
+.shop-btn:hover{border-color:#58a6ff}
+.shop-btn.selected{border-color:#3fb950;background:#0f2a14}
+.shop-btn-name{font-size:13px;font-weight:600;color:#e6edf3}
+.shop-btn-area{font-size:11px;color:#6e7681;margin-top:2px}
+
+/* Beneficiary card */
+.bene-card{background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:16px;margin-bottom:14px;display:none}
+.bene-card.show{display:block}
+.bene-name{font-size:18px;font-weight:700;color:#e6edf3;margin-bottom:4px}
+.bene-id{font-size:12px;color:#6e7681;font-family:'JetBrains Mono',monospace;margin-bottom:10px}
+.bene-amount{font-size:32px;font-weight:700;color:#3fb950}
+.bene-amount-label{font-size:11px;color:#6e7681}
+
+/* Payment animation */
+.payment-anim{background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:16px;display:none}
+.payment-anim.show{display:block}
+.anim-flow{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:12px}
+.anim-node{background:#21262d;border-radius:6px;padding:6px 10px;font-size:11px;text-align:center}
+.anim-arrow{color:#3fb950;font-size:18px;flex:1;text-align:center}
+.anim-packets{font-family:'JetBrains Mono',monospace;font-size:10px;color:#3fb950;height:60px;overflow:hidden}
+.packet{animation:slideIn .2s ease}
+@keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+
+/* Transaction log */
+.tx-item{display:flex;align-items:center;gap:12px;padding:12px;background:#0d1117;border:1px solid #21262d;border-radius:8px;margin-bottom:8px;animation:fadeIn .4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.tx-icon{width:36px;height:36px;background:#0f2a14;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.tx-info{flex:1}
+.tx-title{font-size:13px;font-weight:600;color:#e6edf3}
+.tx-sub{font-size:11px;color:#6e7681;margin-top:2px}
+.tx-amount{font-size:16px;font-weight:700;color:#3fb950}
+.tx-time{font-size:10px;color:#6e7681;text-align:right}
+
+/* Alert */
+.alert{padding:12px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none}
+.alert.show{display:block}
+.alert-error{background:#3d1f1f;border:1px solid #6e2c2c;color:#ffa0a0}
+.alert-success{background:#0f2a14;border:1px solid #3fb950;color:#3fb950}
+.alert-info{background:#1f3a5f;border:1px solid #58a6ff44;color:#58a6ff}
+
+.spinner{display:inline-block;width:12px;height:12px;border:2px solid #30363d;border-top-color:currentColor;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.empty{text-align:center;padding:32px;color:#6e7681;font-size:13px}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Quik<span>Pay</span> <span style="font-size:11px;color:#6e7681;font-weight:400">· SASSA Grant Distribution</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('govt')">🏛 Government</button>
+    <button class="nav-tab" onclick="showPage('spaza')">🏪 Spaza Portal</button>
+    <button class="nav-tab" onclick="showPage('txns')">📋 Transactions</button>
+  </div>
+  <div class="nav-status">
+    <div class="status-dot" id="status-dot"></div>
+    <span id="status-text" style="color:#6e7681">System offline</span>
+  </div>
+</nav>
+
+<!-- ── GOVERNMENT PAGE ── -->
+<div class="page active" id="page-govt">
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-label">Total Beneficiaries</div>
+      <div class="stat-value" id="stat-total">6</div>
+      <div class="stat-sub">Registered recipients</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">Claims Processed</div>
+      <div class="stat-value" id="stat-claimed">0</div>
+      <div class="stat-sub">This month</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-label">Pending Claims</div>
+      <div class="stat-value" id="stat-pending">6</div>
+      <div class="stat-sub">Awaiting collection</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-label">Total Paid Out</div>
+      <div class="stat-value" id="stat-paid">R0</div>
+      <div class="stat-sub">via ILP this month</div>
+    </div>
+  </div>
+
+  <!-- Setup -->
+  <div class="card">
+    <div class="card-title">⚡ System Setup <span class="badge">One-time authorisation</span></div>
+    <div class="setup-steps">
+      <div class="setup-step">
+        <div class="step-num active" id="sn1">1</div>
+        <div class="step-info">
+          <div class="step-title">Authorise Batch Payment Grant</div>
+          <div class="step-desc">SASSA pre-authorises the ILP payment system to release grants to verified spaza shops</div>
+        </div>
+        <div class="step-action">
+          <button class="btn btn-blue" id="btn-setup" onclick="setup()">🔑 Authorise Now</button>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num" id="sn2">2</div>
+        <div class="step-info">
+          <div class="step-title">Approve in Wallet</div>
+          <div class="step-desc">A browser tab will open — approve the grant in the Interledger wallet</div>
+        </div>
+        <div class="step-action">
+          <button class="btn btn-primary" id="btn-activate" onclick="activate()" disabled>✅ Activate System</button>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num" id="sn3">3</div>
+        <div class="step-info">
+          <div class="step-title">System Ready</div>
+          <div class="step-desc">Spaza shops can now process beneficiary claims — payments fire instantly via ILP</div>
+        </div>
+        <div class="step-action">
+          <span id="ready-badge" style="display:none;background:#0f2a14;color:#3fb950;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600">✓ LIVE</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Beneficiaries table -->
+  <div class="card">
+    <div class="card-title">👵 Registered Beneficiaries</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>ID Number</th>
+          <th>Age</th>
+          <th>Grant Amount</th>
+          <th>Status</th>
+          <th>Claimed At</th>
+        </tr>
+      </thead>
+      <tbody id="beneficiaries-table"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ── SPAZA PORTAL PAGE ── -->
+<div class="page" id="page-spaza">
+  <div class="portal-grid">
+
+    <!-- Left: Claim terminal -->
+    <div>
+      <div class="card">
+        <div class="card-title">🪪 Beneficiary Verification</div>
+
+        <div class="alert alert-error" id="spaza-error"></div>
+
+        <div class="id-label">Enter ID Number</div>
+        <input class="id-input" id="id-input" type="text" maxlength="13" placeholder="0000000000000"
+          oninput="onIdInput(this.value)" onkeydown="if(event.key==='Enter')verifyId()"/>
+
+        <div class="bene-card" id="bene-card">
+          <div class="bene-name" id="bene-name"></div>
+          <div class="bene-id" id="bene-id"></div>
+          <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:10px">
+            <div class="bene-amount" id="bene-amount"></div>
+            <div class="bene-amount-label">monthly grant</div>
+          </div>
+          <div style="font-size:12px;color:#6e7681" id="bene-status"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🏪 Select Spaza Shop</div>
+        <div class="shops-grid" id="shops-grid"></div>
+      </div>
+
+      <button class="btn btn-primary" id="btn-claim" style="width:100%;padding:14px;font-size:15px;margin-bottom:8px" onclick="processClaim()" disabled>
+        ⚡ Process Claim & Pay Shop
+      </button>
+      <div style="font-size:11px;color:#6e7681;text-align:center">Payment fires instantly to the spaza shop via ILP</div>
+    </div>
+
+    <!-- Right: Live payment feed -->
+    <div>
+      <div class="card">
+        <div class="card-title">⚡ Live Payment Stream</div>
+        <div class="payment-anim" id="payment-anim">
+          <div class="anim-flow">
+            <div class="anim-node" style="color:#58a6ff">🏛 SASSA<br>sassa-gov</div>
+            <div class="anim-arrow">→→→→→</div>
+            <div class="anim-node" style="color:#3fb950">🏪 Spaza<br><span id="anim-shop-name">Shop</span></div>
+          </div>
+          <div class="anim-packets" id="anim-packets"></div>
+        </div>
+        <div id="claim-result"></div>
+        <div id="recent-claims"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── TRANSACTIONS PAGE ── -->
+<div class="page" id="page-txns">
+  <div class="card">
+    <div class="card-title">📋 All Transactions <span class="badge" id="tx-count">0 payments</span></div>
+    <div id="tx-list"><div class="empty">No transactions yet. Process a claim to see it here.</div></div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let selectedBeneficiary = null;
+let selectedShop        = null;
+let systemReady         = false;
+let pollSetup           = null;
+
+// ── Navigation ─────────────────────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  event.target.classList.add('active');
+  if (id === 'txns') loadTransactions();
+  if (id === 'govt') loadStats();
+}
+
+// ── Setup flow ─────────────────────────────────────────────────────────────
+async function setup() {
+  const btn = document.getElementById('btn-setup');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Requesting grant...';
+
+  try {
+    const res  = await fetch('/api/setup', { method:'POST' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    window.open(data.redirectUrl, '_blank');
+
+    document.getElementById('sn1').className = 'step-num done';
+    document.getElementById('sn1').textContent = '✓';
+    document.getElementById('sn2').className = 'step-num active';
+    document.getElementById('btn-activate').disabled = false;
+    btn.textContent = '✓ Grant requested';
+
+    // Poll for approval
+    pollSetup = setInterval(async () => {
+      const r = await fetch('/api/setup/status');
+      const d = await r.json();
+      if (d.status === 'approved') {
+        clearInterval(pollSetup);
+        document.getElementById('btn-activate').style.background = '#238636';
+        document.getElementById('btn-activate').textContent = '✅ Activate System (Ready!)';
+      }
+    }, 2000);
+
+  } catch(err) {
+    btn.disabled = false;
+    btn.textContent = '🔑 Authorise Now';
+    alert('Error: ' + err.message);
+  }
+}
+
+async function activate() {
+  const btn = document.getElementById('btn-activate');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Activating...';
+
+  try {
+    const res  = await fetch('/api/setup/complete', { method:'POST' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    systemReady = true;
+    document.getElementById('sn2').className = 'step-num done';
+    document.getElementById('sn2').textContent = '✓';
+    document.getElementById('sn3').className = 'step-num done';
+    document.getElementById('sn3').textContent = '✓';
+    document.getElementById('ready-badge').style.display = 'inline-block';
+    document.getElementById('status-dot').className = 'status-dot ready';
+    document.getElementById('status-text').textContent = 'System live';
+    document.getElementById('status-text').style.color = '#3fb950';
+    btn.textContent = '✓ Active';
+
+  } catch(err) {
+    btn.disabled = false;
+    btn.textContent = '✅ Activate System';
+    alert('Error: ' + err.message + '\n\nMake sure you approved the grant in the browser first.');
+  }
+}
+
+// ── Stats & beneficiaries ──────────────────────────────────────────────────
+async function loadStats() {
+  const [stats, beneficiaries] = await Promise.all([
+    fetch('/api/stats').then(r=>r.json()),
+    fetch('/api/beneficiaries').then(r=>r.json()),
+  ]);
+
+  document.getElementById('stat-total').textContent   = stats.total;
+  document.getElementById('stat-claimed').textContent = stats.claimed;
+  document.getElementById('stat-pending').textContent = stats.unclaimed;
+  document.getElementById('stat-paid').textContent    = 'R' + stats.totalPaid.toLocaleString();
+
+  const tbody = document.getElementById('beneficiaries-table');
+  tbody.innerHTML = beneficiaries.map(b => `
+    <tr>
+      <td style="font-weight:500;color:#e6edf3">${b.name}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#8b949e">${b.id}</td>
+      <td>${b.age}</td>
+      <td style="color:#3fb950;font-weight:600">R${b.grant}</td>
+      <td>${b.claimed
+        ? '<span class="badge-claimed">✓ Claimed</span>'
+        : '<span class="badge-pending">⏳ Pending</span>'}</td>
+      <td style="font-size:12px;color:#6e7681">${b.claimedAt ? new Date(b.claimedAt).toLocaleString() : '—'}</td>
+    </tr>
+  `).join('');
+}
+
+// ── Spaza portal ───────────────────────────────────────────────────────────
+async function loadShops() {
+  const shops = await fetch('/api/shops').then(r=>r.json());
+  const grid  = document.getElementById('shops-grid');
+  grid.innerHTML = shops.map(s => `
+    <button class="shop-btn" id="shop-${s.id}" data-id="${s.id}" data-name="${s.name}">
+      <div class="shop-btn-name">🏪 ${s.name}</div>
+      <div class="shop-btn-area">${s.area}</div>
+    </button>
+  `).join('');
+  document.querySelectorAll('.shop-btn').forEach(btn => {
+    btn.addEventListener('click', () => selectShop(btn.dataset.id, btn.dataset.name));
+  });
+}
+
+function selectShop(id, name) {
+  document.querySelectorAll('.shop-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('shop-'+id).classList.add('selected');
+  selectedShop = { id, name };
+  updateClaimBtn();
+}
+
+function onIdInput(val) {
+  val = val.replace(/\D/g,'');
+  document.getElementById('id-input').value = val;
+  if (val.length === 13) verifyId(val);
+  else hideBeneCard();
+}
+
+async function verifyId(idNum) {
+  idNum = idNum || document.getElementById('id-input').value;
+  if (idNum.length !== 13) return;
+
+  const beneficiaries = await fetch('/api/beneficiaries').then(r=>r.json());
+  const b = beneficiaries.find(x => x.id === idNum);
+
+  hideError('spaza-error');
+
+  if (!b) {
+    showError('spaza-error', 'ID not found in SASSA beneficiary database');
+    hideBeneCard();
+    selectedBeneficiary = null;
+    return;
+  }
+
+  selectedBeneficiary = b;
+  document.getElementById('bene-name').textContent   = b.name;
+  document.getElementById('bene-id').textContent     = b.id;
+  document.getElementById('bene-amount').textContent = 'R' + b.grant;
+  document.getElementById('bene-status').textContent = b.claimed
+    ? '⚠️ Grant already claimed this month at ' + (b.claimedShop || 'another shop')
+    : '✅ Grant available for collection';
+  document.getElementById('bene-card').classList.add('show');
+  updateClaimBtn();
+}
+
+function hideBeneCard() {
+  document.getElementById('bene-card').classList.remove('show');
+  selectedBeneficiary = null;
+  updateClaimBtn();
+}
+
+function updateClaimBtn() {
+  const btn = document.getElementById('btn-claim');
+  const ok  = selectedBeneficiary && selectedShop && !selectedBeneficiary.claimed && systemReady;
+  btn.disabled = !ok;
+  if (!systemReady) btn.textContent = '⚠️ System not activated yet';
+  else if (!selectedBeneficiary) btn.textContent = '⚡ Enter beneficiary ID first';
+  else if (selectedBeneficiary.claimed) btn.textContent = '✗ Grant already claimed';
+  else if (!selectedShop) btn.textContent = '⚡ Select a spaza shop first';
+  else btn.textContent = `⚡ Pay R${selectedBeneficiary.grant} to ${selectedShop.name}`;
+}
+
+let currentClaimId = null;
+
+async function processClaim() {
+  const btn = document.getElementById('btn-claim');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Setting up payment...';
+  hideError('spaza-error');
+
+  try {
+    const res  = await fetch('/api/claim', {
+      method:  'POST',
+      headers: {'Content-Type':'application/json'},
+      body:    JSON.stringify({ beneficiaryId: selectedBeneficiary.id, shopId: selectedShop.id }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    currentClaimId = data.claimId;
+
+    // Show animation panel
+    document.getElementById('anim-shop-name').textContent = selectedShop.name;
+    document.getElementById('payment-anim').classList.add('show');
+
+    // Open grant approval in new tab
+    window.open(data.redirectUrl, '_blank');
+
+    btn.innerHTML = '⏳ Approve in browser, then click here to complete';
+    btn.disabled  = false;
+    btn.onclick   = completeClaim;
+
+  } catch(err) {
+    showError('spaza-error', err.message);
+    btn.disabled  = false;
+    btn.textContent = '⚡ Process Claim & Pay Shop';
+    btn.onclick = processClaim;
+  }
+}
+
+async function completeClaim() {
+  const btn = document.getElementById('btn-claim');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Sending payment over ILP...';
+
+  // Animate packets
+  const pktDiv = document.getElementById('anim-packets');
+  pktDiv.innerHTML = '';
+  let pktCount = 0;
+  const pktInterval = setInterval(() => {
+    pktCount++;
+    const p = document.createElement('div');
+    p.className = 'packet';
+    p.textContent = `PKT-${String(pktCount).padStart(3,'0')} → FULFILLED → R${(selectedBeneficiary.grant / 40 * pktCount).toFixed(4)}`;
+    pktDiv.appendChild(p);
+    if (pktCount >= 12) clearInterval(pktInterval);
+  }, 130);
+
+  try {
+    const res  = await fetch('/api/claim/complete', {
+      method:  'POST',
+      headers: {'Content-Type':'application/json'},
+      body:    JSON.stringify({ claimId: currentClaimId }),
+    });
+    const data = await res.json();
+    clearInterval(pktInterval);
+    if (!res.ok) throw new Error(data.error);
+
+    // Success
+    document.getElementById('claim-result').innerHTML = `
+      <div style="background:#0f2a14;border:1px solid #3fb950;border-radius:8px;padding:16px;margin-top:12px">
+        <div style="font-size:16px;font-weight:700;color:#3fb950;margin-bottom:10px">✅ Payment Sent!</div>
+        <div style="font-size:12px;color:#8b949e;display:flex;flex-direction:column;gap:4px">
+          <div>👵 <strong style="color:#e6edf3">${data.beneficiary.name}</strong> collected R${data.beneficiary.grant}</div>
+          <div>🏪 Paid instantly to <strong style="color:#e6edf3">${data.shop.name}</strong> via ILP</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#6e7681;margin-top:4px">TX: ${data.transaction.id.slice(0,8)}...</div>
+        </div>
+      </div>
+    `;
+
+    // Reset form
+    document.getElementById('id-input').value = '';
+    selectedBeneficiary = null;
+    currentClaimId = null;
+    hideBeneCard();
+    document.querySelectorAll('.shop-btn').forEach(b => b.classList.remove('selected'));
+    selectedShop = null;
+    btn.onclick = processClaim;
+    loadStats();
+    loadRecentClaims();
+
+  } catch(err) {
+    clearInterval(pktInterval);
+    showError('spaza-error', err.message);
+  }
+
+  btn.disabled  = false;
+  btn.textContent = '⚡ Process Claim & Pay Shop';
+  btn.onclick = processClaim;
+  updateClaimBtn();
+}
+
+async function loadRecentClaims() {
+  const txns = await fetch('/api/transactions').then(r=>r.json());
+  const div  = document.getElementById('recent-claims');
+  if (!txns.length) { div.innerHTML = ''; return; }
+  div.innerHTML = '<div style="font-size:11px;color:#6e7681;text-transform:uppercase;letter-spacing:.6px;margin:12px 0 8px">Recent claims</div>' +
+    txns.slice(0,3).map(tx => `
+      <div class="tx-item">
+        <div class="tx-icon">💸</div>
+        <div class="tx-info">
+          <div class="tx-title">${tx.beneficiary}</div>
+          <div class="tx-sub">${tx.shop}</div>
+        </div>
+        <div>
+          <div class="tx-amount">R${tx.amount}</div>
+          <div class="tx-time">${new Date(tx.timestamp).toLocaleTimeString()}</div>
+        </div>
+      </div>
+    `).join('');
+}
+
+// ── Transactions ───────────────────────────────────────────────────────────
+async function loadTransactions() {
+  const txns = await fetch('/api/transactions').then(r=>r.json());
+  document.getElementById('tx-count').textContent = txns.length + ' payments';
+  const div = document.getElementById('tx-list');
+  if (!txns.length) {
+    div.innerHTML = '<div class="empty">No transactions yet.</div>';
+    return;
+  }
+  div.innerHTML = txns.map(tx => `
+    <div class="tx-item">
+      <div class="tx-icon">💸</div>
+      <div class="tx-info">
+        <div class="tx-title">${tx.beneficiary} → ${tx.shop}</div>
+        <div class="tx-sub" style="font-family:'JetBrains Mono',monospace;font-size:10px">${tx.id.slice(0,16)}... · ${tx.state}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="tx-amount">R${tx.amount}</div>
+        <div class="tx-time">${new Date(tx.timestamp).toLocaleString()}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = '⚠ ' + msg;
+  el.classList.add('show');
+}
+function hideError(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+loadStats();
+loadShops();
+loadRecentClaims();
+
+// Refresh stats every 5 seconds
+setInterval(loadStats, 5000);
+</script>
+</body>
+</html>

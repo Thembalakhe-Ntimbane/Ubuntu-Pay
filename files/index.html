@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>QuikPay — ILP Micro-Remittance</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0d1117;font-family:'JetBrains Mono',monospace;color:#c9d1d9;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+
+  .card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:32px;width:100%;max-width:480px}
+
+  .logo{font-size:24px;font-weight:700;color:#58a6ff;text-align:center;margin-bottom:4px}
+  .logo span{color:#3fb950}
+  .tagline{text-align:center;font-size:11px;color:#6e7681;margin-bottom:28px}
+
+  /* Wallets */
+  .wallets{background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:14px;margin-bottom:20px}
+  .wallet-row{display:flex;align-items:center;gap:10px;font-size:11px}
+  .wallet-row+.wallet-row{margin-top:10px}
+  .wallet-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+  .icon-send{background:#1f3a5f}
+  .icon-recv{background:#1a3a2a}
+  .wallet-info{flex:1}
+  .wallet-label{color:#6e7681;font-size:10px}
+  .wallet-addr{color:#c9d1d9;font-size:11px}
+  .arrow{text-align:center;color:#3fb950;font-size:18px;margin:6px 0}
+
+  /* Amount input */
+  .input-label{font-size:11px;color:#8b949e;margin-bottom:6px}
+  .input-wrap{position:relative;margin-bottom:20px}
+  .currency{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#6e7681;font-size:16px;font-weight:600}
+  input[type=number]{width:100%;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:14px 14px 14px 34px;color:#e6edf3;font-family:inherit;font-size:20px;font-weight:600;outline:none;transition:border-color .2s}
+  input[type=number]:focus{border-color:#58a6ff}
+  input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+
+  /* Buttons */
+  .btn{width:100%;padding:14px;border-radius:8px;border:none;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+  .btn-primary{background:#238636;color:#fff}
+  .btn-primary:hover{background:#2ea043}
+  .btn-primary:disabled{background:#161b22;color:#6e7681;cursor:not-allowed}
+  .btn-approve{background:#1f3a5f;color:#58a6ff;border:1px solid #58a6ff55;margin-bottom:10px}
+  .btn-approve:hover{background:#264a7a}
+  .btn-complete{background:#238636;color:#fff}
+  .btn-complete:hover{background:#2ea043}
+  .btn-reset{background:transparent;color:#6e7681;border:1px solid #30363d;margin-top:10px}
+  .btn-reset:hover{background:#21262d}
+
+  /* Steps */
+  .steps{margin-bottom:20px}
+  .step{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #21262d22;font-size:12px}
+  .step:last-child{border:none}
+  .step-num{width:22px;height:22px;border-radius:50%;background:#21262d;color:#6e7681;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .4s}
+  .step-num.active{background:#58a6ff;color:#0d1117}
+  .step-num.done{background:#3fb950;color:#0d1117}
+  .step-text{color:#8b949e;transition:color .4s}
+  .step-text.active{color:#c9d1d9}
+  .step-text.done{color:#3fb950}
+
+  /* Log */
+  .log{background:#0d1117;border:1px solid #21262d;border-radius:6px;padding:10px;height:120px;overflow-y:auto;font-size:10px;margin-bottom:16px;scroll-behavior:smooth}
+  .log::-webkit-scrollbar{width:3px}
+  .log::-webkit-scrollbar-thumb{background:#30363d}
+  .log-line{line-height:1.8;color:#8b949e}
+  .log-line.ok{color:#3fb950}
+  .log-line.info{color:#58a6ff}
+  .log-line.warn{color:#ffa657}
+  .log-line.err{color:#f0883e}
+
+  /* Result */
+  .result{background:#0f2a14;border:1px solid #3fb950;border-radius:8px;padding:16px;text-align:center;display:none}
+  .result.show{display:block}
+  .result-title{font-size:16px;font-weight:700;color:#3fb950;margin-bottom:12px}
+  .result-row{display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px solid #3fb95022}
+  .result-row:last-child{border:none}
+  .result-label{color:#6e7681}
+  .result-val{color:#3fb950;font-weight:600}
+
+  .hidden{display:none}
+  .spinner{display:inline-block;width:12px;height:12px;border:2px solid #30363d;border-top-color:#58a6ff;border-radius:50%;animation:spin .8s linear infinite;margin-right:6px;vertical-align:middle}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">Quik<span>Pay</span></div>
+  <div class="tagline">ILP Micro-Remittance · Interledger Open Payments</div>
+
+  <!-- Wallet display -->
+  <div class="wallets">
+    <div class="wallet-row">
+      <div class="wallet-icon icon-send">📤</div>
+      <div class="wallet-info">
+        <div class="wallet-label">SENDING FROM</div>
+        <div class="wallet-addr">$ilp.interledger-test.dev/sassa-gov</div>
+      </div>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="wallet-row">
+      <div class="wallet-icon icon-recv">📥</div>
+      <div class="wallet-info">
+        <div class="wallet-label">SENDING TO</div>
+        <div class="wallet-addr">$ilp.interledger-test.dev/ubuntu</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 1: Amount entry -->
+  <div id="view-amount">
+    <div class="input-label">Amount to send (USD)</div>
+    <div class="input-wrap">
+      <span class="currency">$</span>
+      <input type="number" id="amount" placeholder="0.00" min="0.01" step="0.01" value="10"/>
+    </div>
+    <button class="btn btn-primary" id="btn-initiate" onclick="initiate()">
+      ▶ Start Payment
+    </button>
+  </div>
+
+  <!-- Step 2: Approve + Complete -->
+  <div id="view-flow" class="hidden">
+    <div class="steps">
+      <div class="step">
+        <div class="step-num done" id="sn1">✓</div>
+        <div class="step-text done" id="st1">Payment quote created</div>
+      </div>
+      <div class="step">
+        <div class="step-num" id="sn2">2</div>
+        <div class="step-text" id="st2">Approve grant in browser</div>
+      </div>
+      <div class="step">
+        <div class="step-num" id="sn3">3</div>
+        <div class="step-text" id="st3">Send payment over ILP</div>
+      </div>
+    </div>
+
+    <div class="log" id="log"></div>
+
+    <div id="approve-section">
+      <button class="btn btn-approve" id="btn-approve" onclick="openApproval()">
+        🔑 Approve Grant in Browser
+      </button>
+      <button class="btn btn-complete" id="btn-complete" onclick="complete()" disabled>
+        ⚡ Complete Payment
+      </button>
+    </div>
+
+    <button class="btn btn-reset" onclick="reset()">↺ Start Over</button>
+  </div>
+
+  <!-- Result -->
+  <div class="result" id="result">
+    <div class="result-title">✅ Payment Sent!</div>
+    <div id="result-rows"></div>
+    <button class="btn btn-reset" style="margin-top:14px" onclick="reset()">↺ Send Another</button>
+  </div>
+</div>
+
+<script>
+let sessionId    = null;
+let approvalUrl  = null;
+let pollInterval = null;
+
+function log(msg, cls = "log-line") {
+  const el  = document.getElementById("log");
+  const now = new Date().toLocaleTimeString();
+  const d   = document.createElement("div");
+  d.className = cls;
+  d.textContent = `[${now}] ${msg}`;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+function stepDone(n) {
+  document.getElementById("sn"+n).className = "step-num done";
+  document.getElementById("sn"+n).textContent = "✓";
+  document.getElementById("st"+n).className = "step-text done";
+}
+
+function stepActive(n) {
+  document.getElementById("sn"+n).className = "step-num active";
+  document.getElementById("st"+n).className = "step-text active";
+}
+
+async function initiate() {
+  const amount = parseFloat(document.getElementById("amount").value);
+  if (!amount || amount <= 0) {
+    alert("Please enter a valid amount.");
+    return;
+  }
+
+  const btn = document.getElementById("btn-initiate");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Setting up payment...';
+
+  try {
+    log("Connecting to ILP network...", "log-line info");
+    log(`Sending $${amount.toFixed(2)} via Open Payments...`, "log-line info");
+
+    const res  = await fetch("/api/initiate", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ amount }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error);
+
+    sessionId   = data.sessionId;
+    approvalUrl = data.redirectUrl;
+
+    log(`Quote: debit ${data.debitAmount.value} ${data.debitAmount.assetCode}`, "log-line ok");
+    log(`Quote: receive ${data.receiveAmount.value} ${data.receiveAmount.assetCode}`, "log-line ok");
+    log("Waiting for grant approval...", "log-line warn");
+
+    document.getElementById("view-amount").classList.add("hidden");
+    document.getElementById("view-flow").classList.remove("hidden");
+
+    stepDone(1);
+    stepActive(2);
+
+    // Start polling for approval
+    startPolling();
+
+  } catch (err) {
+    log("❌ Error: " + err.message, "log-line err");
+    btn.disabled = false;
+    btn.textContent = "▶ Start Payment";
+  }
+}
+
+function openApproval() {
+  if (!approvalUrl) return;
+  window.open(approvalUrl, "_blank");
+  log("Grant approval page opened in new tab...", "log-line info");
+  log("Approve the payment there, then click Complete Payment.", "log-line warn");
+}
+
+function startPolling() {
+  pollInterval = setInterval(async () => {
+    if (!sessionId) return;
+    const res  = await fetch(`/api/status/${sessionId}`);
+    const data = await res.json();
+    if (data.status === "approved") {
+      clearInterval(pollInterval);
+      log("✅ Grant approved! Click Complete Payment.", "log-line ok");
+      stepDone(2);
+      stepActive(3);
+      document.getElementById("btn-complete").disabled = false;
+    }
+  }, 2000);
+}
+
+async function complete() {
+  const btn = document.getElementById("btn-complete");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Sending over ILP...';
+
+  log("Finalising grant...", "log-line info");
+  log("Sending payment over Interledger...", "log-line info");
+
+  try {
+    const res  = await fetch("/api/complete", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ sessionId }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error);
+
+    log("✅ Payment sent successfully!", "log-line ok");
+    stepDone(3);
+
+    // Show result
+    const scale   = data.sentAmount?.assetScale || 2;
+    const sent    = data.sentAmount
+      ? (parseInt(data.sentAmount.value) / Math.pow(10, scale)).toFixed(scale)
+      : "—";
+    const recv    = data.receiveAmount
+      ? (parseInt(data.receiveAmount.value) / Math.pow(10, data.receiveAmount.assetScale || 2)).toFixed(2)
+      : "—";
+
+    document.getElementById("result-rows").innerHTML = `
+      <div class="result-row"><span class="result-label">Payment ID</span><span class="result-val" style="font-size:9px;word-break:break-all">${data.paymentId?.split("/").pop() || "—"}</span></div>
+      <div class="result-row"><span class="result-label">Amount sent</span><span class="result-val">${sent} ${data.sentAmount?.assetCode || ""}</span></div>
+      <div class="result-row"><span class="result-label">Received</span><span class="result-val">${recv} ${data.receiveAmount?.assetCode || ""}</span></div>
+      <div class="result-row"><span class="result-label">State</span><span class="result-val">${data.state || "COMPLETED"}</span></div>
+      <div class="result-row"><span class="result-label">From</span><span class="result-val" style="font-size:9px">sassa-gov</span></div>
+      <div class="result-row"><span class="result-label">To</span><span class="result-val" style="font-size:9px">ubuntu</span></div>
+    `;
+
+    setTimeout(() => {
+      document.getElementById("view-flow").classList.add("hidden");
+      document.getElementById("result").classList.add("show");
+    }, 800);
+
+  } catch (err) {
+    log("❌ " + err.message, "log-line err");
+    btn.disabled = false;
+    btn.textContent = "⚡ Complete Payment";
+  }
+}
+
+function reset() {
+  clearInterval(pollInterval);
+  sessionId = null;
+  approvalUrl = null;
+
+  document.getElementById("view-amount").classList.remove("hidden");
+  document.getElementById("view-flow").classList.add("hidden");
+  document.getElementById("result").classList.remove("show");
+  document.getElementById("log").innerHTML = "";
+  document.getElementById("btn-initiate").disabled = false;
+  document.getElementById("btn-initiate").textContent = "▶ Start Payment";
+  document.getElementById("btn-complete").disabled = true;
+  document.getElementById("btn-complete").textContent = "⚡ Complete Payment";
+
+  ["sn2","sn3"].forEach((id,i) => {
+    document.getElementById(id).className = "step-num";
+    document.getElementById(id).textContent = i+2;
+  });
+  ["st2","st3"].forEach(id => {
+    document.getElementById(id).className = "step-text";
+  });
+}
+</script>
+</body>
+</html>
